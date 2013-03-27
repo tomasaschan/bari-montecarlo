@@ -1,23 +1,32 @@
-FC = mpif77 
-FFLAGS=-Wall 
+FC = mpif77
+FFLAGS=-Wall -g -fcray-pointer
 RUNNER = runner
-INARGS = 
-#< input.in
+INARGS = < input.in
+OUTARGS = > output.out
+CMD = ./$(RUNNER) $(INARGS) $(OUTARGS)
+VALGRINDOPTS = --suppressions=/usr/share/openmpi/openmpi-valgrind.supp
+
+$(RUNNER): distribution.o
 
 all: $(RUNNER)
 
 run: all
-	mpirun -np 8 $(RUNNER) $(INARGS)
+	mpirun -np 1 $(CMD)
 
-runserial: all
-	mpirun -np 1 $(RUNNER) $(INARGS)
+runp: all
+	mpirun -np 8 $(CMD)
 	
-clean:
-	rm -f *~ *.o $(RUNNER)
+clean: cleanout
+	rm -f *~ *.o .fuse_* $(RUNNER)
 
-cleanout: clean
-	rm -f *.out
+cleanout:
+	rm -f *.out *.png
 
-show:
-	$(FC) $(FFLAGS) -show $(RUNNER).f -o $(RUNNER)
+memcheck: all
+	valgrind $(VALGRINDOPTS) $(CMD)
 
+memcheckp: all
+	mpirun -np 2 valgrind $(VALGRINDOPTS) $(CMD)
+
+plot:
+	gnuplot plotting.gpt

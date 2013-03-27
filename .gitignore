@@ -1,5 +1,6 @@
 # Temporary files
 *~
+.fuse_*
 
 # Binaries
 *.o
@@ -7,3 +8,4 @@ runner
 
 # Output files
 *.out
+*.png
