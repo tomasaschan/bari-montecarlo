@@ -1,12 +1,12 @@
 FC = mpif77
-FFLAGS=-Wall -g -fcray-pointer
+FFLAGS=-Wall -g# -fcray-pointer
 RUNNER = runner
 INARGS = < input.in
 OUTARGS = > output.out
 CMD = ./$(RUNNER) $(INARGS) $(OUTARGS)
 VALGRINDOPTS = --suppressions=/usr/share/openmpi/openmpi-valgrind.supp
 
-$(RUNNER): distribution.o
+$(RUNNER): distribution.o helpers.o
 
 all: $(RUNNER)
 

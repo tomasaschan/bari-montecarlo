@@ -1,49 +1,66 @@
-      subroutine simulate_single_electron(ni, energy, tfin, dt)
+      subroutine simulate_distribution(nn, N, energy, tfin, dt)
         implicit none
-
           ! Input parameters
-          real*8 ni, energy, tfin, dt, t
+          real*8 nn, energy, tfin, dt, t
+          integer N
 
-          ! Function to calculate collision time
-          real*8 collision_time
+          ! Helper functions
+          real*8 collision_time, velocity
           
           ! Parameters for simulation
-          real*8 velocity, pos, tc, dtp
-
+          integer i, head
+          real*8 tc(2*N), dtp !velocity,, tc, dtp
+          real*8 energies(2*N), positions(2*N)
+          
           ! Electron mass
           real me
           parameter(me=9.11E-31)
 
+          ! Initialize simulation
+          head = N
+          do i = 1, head
+            energies(i) = energy
+            positions(i) = 0
+            tc(i) = collision_time(nn, energies(i))
+          enddo
+          do i = 1, head
+            energies(N+i) = 0
+            positions(N+i) = 0
+            tc(i) = 0
+          enddo
+          t = 0
+          
           do while (t .LT. tfin)
-              t = t + dt
-              tc = collision_time(ni, energy)
-              print *, t, energy, tc
+            do i = 1, head
+              dtp = dt
+              
+              do while (tc(i) .lt. dtp)
+                ! Collision occurs
+                
+                ! Propagate to collision, i.e. for tc(i)
+                positions(i)=positions(i)+velocity(energies(i))*tc(i)
+                
+                ! TODO: Generate new e-
+                !       Give both particles appropriate energies
+                                
+                ! Update time step
+                dtp = dtp - tc(i)
+                ! Calculate new collision time
+                tc(i) = collision_time(nn, energies(i))
+              enddo
+              
+              ! No more collisions - finish time step
+              
+              ! Propagate to end of timestep, i.e. for dtp
+              positions(i)=positions(i)+velocity(energies(i))*dtp
+              
+              ! Update collision time
+              tc(i) = tc(i) - dtp
+            enddo
+            
+            print *, t, positions(1:head), energies(1:head), tc(1:head)
+              
+            t = t + dt
           enddo
       end
 
-      function collision_time(ni, eV)
-        implicit none
-          ! function input parameters and energy in Joules
-          real*8 ni, eV, J, logeV
-          ! function return value, and intermediates cs, v and alpha
-          real*8 collision_time, cross_section, v, alpha
-
-          ! elementary charge, for conversions Joule <-> eV
-          real e
-          parameter(e = 1.602176E-19)
-          ! Electron mass
-          real me
-          parameter(me=9.11E-31)
-          ! Parameters from curve fitting
-          real k1, k2, k3
-          parameter(k1=-65.5784259,k2=13.077650,k3=-1.41988776)
-          
-          logeV = log(eV)
-          J = eV*e
-          v = sqrt(2*J/me)
-          
-          cross_section = exp(k1 + k2*logeV + k3*logeV*logeV)
-          alpha = ni*v*cross_section
-          
-          collision_time = -log(rand()) / alpha
-      end
