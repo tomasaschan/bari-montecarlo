@@ -1,0 +1,8 @@
+# Temporary files
+*~
+
+# Object files
+*.o
+
+# Output files
+*.out
