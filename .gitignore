@@ -1,8 +1,9 @@
 # Temporary files
 *~
 
-# Object files
+# Binaries
 *.o
+runner
 
 # Output files
 *.out
