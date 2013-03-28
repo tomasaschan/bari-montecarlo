@@ -11,7 +11,7 @@
           N = 100
           
           do i=1, N
-            eV = 300.0*(i/(N*1.0))
+            eV = 310.0*(i/(N*1.0))
             
             cs = cross_section(eV)
             alpha = nn*velocity(eV)*cs

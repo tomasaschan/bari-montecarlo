@@ -1,5 +1,5 @@
 set term pngcairo enhanced font "CM Roman"
-set output 'crosssection-eV.png'
+set output 'collisiontime.png'
 
 set title 'Cross-section vs. energy'
 set xlabel 'Energy, eV'
