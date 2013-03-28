@@ -1,15 +1,15 @@
 FC = mpif77
 FFLAGS=-Wall -g# -fcray-pointer
-RUNNER = simulation
+RUNNER = histogram
 BINARIES = $(RUNNER) collisiontime
-CMD = ./$(RUNNER) < $(RUNNER).in > $(RUNNER).out
+CMD = ./$(RUNNER) < $(RUNNER).in# > $(RUNNER).out
 VALGRINDOPTS = --suppressions=/usr/share/openmpi/openmpi-valgrind.supp
 
 install: all
 
 all: $(BINARIES)
 
-$(RUNNER): distribution.o helpers.o
+$(RUNNER): helpers.o
 
 run: $(RUNNER)
 	mpirun -np 1 $(CMD)
