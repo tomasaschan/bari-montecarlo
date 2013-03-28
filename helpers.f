@@ -1,33 +1,77 @@
       function collision_time(n, eV)
+        ! This function simply uses the nonrandom version, and then adds
+        ! a random factor of -log(rand()) 
+        
         implicit none
-          ! function input parameters and log(energy)
-          real*8 n, eV, logeV
-          ! function return value, and intermediates cs, v and alpha
-          real*8 collision_time, cross_section, alpha, velocity
+          ! function input parameters
+          real*8 n, eV
+          ! return value and auxiliary function
+          real*8 collision_time, nonrandom_collision_time
+          
+          collision_time = -log(rand())*nonrandom_collision_time(n,eV)
+      end
+      
+      function nonrandom_collision_time(n, eV)
+        ! Calculates the collision time for a particle of energy eV,
+        ! given a particle density of the medium with which it collides
+        ! of n m^(-3).
+        
+        implicit none
+          ! function input parameters
+          real*8 n, eV
+          ! function return value, and helper functions
+          real*8 nonrandom_collision_time, cross_section, velocity
+          ! intermediate quantity
+          real*8 collision_frequency
 
-          ! elementary charge, for conversions Joule <-> eV
-          real e
-          parameter(e = 1.602176E-19)
-          ! Electron mass
-          real me
-          parameter(me=9.11E-31)
+          collision_frequency = n*velocity(eV)*cross_section(eV)
+          nonrandom_collision_time = 1.0 / collision_frequency
+      end
+      
+      function cross_section(eV)
+        ! Calculates the collision cross-section for electrons in a
+        ! nitrogen gas, based on a fit to data from 
+        ! www.lxcat.laplace.univ-tlse.fr
+        
+        implicit none
+          ! Input argument and return value
+          real*8 eV, cross_section
+        
           ! Parameters from curve fitting in Matlab
-          real k1, k2, k3
-          parameter(k1=-65.5784259,k2=13.077650,k3=-1.41988776)
-          
-          logeV = log(eV)
-                    
-          cross_section = exp(k1 + k2*logeV + k3*logeV*logeV)*1E-4
-          alpha = n*velocity(eV)*cross_section
-          
-          collision_time = -log(rand()) / alpha
-c~           print *, collision_time
+          real q0, q1, q2, q3, q4, l0, l1, E0
+          parameter(q0=-2.2007449E-20,q1=2.855227E-21,q2=-4.6951205E-23)
+          parameter(q3=3.031989421E-25,q4=-6.335964E-28)
+          parameter(l0=4.61761822E-20, l1=-1.3624567E-22)
+          parameter(E0=70)
+
+
+          if (eV.LT.E0) then
+              cross_section=q0+q1*eV+q2*eV*eV+q3*eV*eV*eV+q4*eV*eV*eV*eV
+          else 
+              cross_section=l0+l1*eV
+          endif
       end
 
       function velocity(eV)
+        ! Calculates the velocity in m/s for an electron with kinetic
+        ! energy eV
+        
+        implicit none
           real*8 eV, velocity
           real me, e
           parameter(me=9.11E-31,e = 1.602176E-19)
 
           velocity = sqrt(2*eV*e/me)
+      end
+
+      function energy(v)
+        ! Calculates the kinetic energy in eV for an electron which 
+        ! moves at a velocity v (in m/s)
+        
+        implicit none
+          real*8 v(3), energy
+          real me, e
+          parameter(me=9.11E-31,e = 1.602176E-19)
+          
+          energy = .5*me*(v(1)*v(1) + v(2)*v(2) + v(3)*v(3)) / e
       end
