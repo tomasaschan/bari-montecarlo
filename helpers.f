@@ -11,7 +11,7 @@
           ! Electron mass
           real me
           parameter(me=9.11E-31)
-          ! Parameters from curve fitting
+          ! Parameters from curve fitting in Matlab
           real k1, k2, k3
           parameter(k1=-65.5784259,k2=13.077650,k3=-1.41988776)
           

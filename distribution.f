@@ -8,7 +8,7 @@
           real*8 collision_time, velocity
           
           ! Parameters for simulation
-          integer i, head
+          integer i, head, colls_this_step
           real*8 tc(2*N), dtp !velocity,, tc, dtp
           real*8 energies(2*N), positions(2*N)
           
@@ -31,6 +31,7 @@
           t = 0
           
           do while (t .LT. tfin)
+            colls_this_step = 0
             do i = 1, head
               dtp = dt
               
@@ -58,9 +59,8 @@
               tc(i) = tc(i) - dtp
             enddo
             
-            print *, t, positions(1:head), energies(1:head), tc(1:head)
+            print *, t, positions(1:head), energies(1:head)
               
             t = t + dt
           enddo
       end
-

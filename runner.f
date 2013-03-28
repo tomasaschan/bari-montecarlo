@@ -11,8 +11,9 @@
         call MPI_Comm_rank(MPI_Comm_world, rnk, ierr)
 
         if (rnk.EQ.0) then
-            ! Read the comment line
+            ! Read the comment line in input file
             read *,
+            ! Read parameters from stdin
             read *, seed, N, nn, energy, tfin, dt
 
             call srand(seed)
