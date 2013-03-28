@@ -1,10 +1,13 @@
-      function collision_time(n, eV)
+      function collision_time(eV)
         ! This function simply uses the nonrandom version, and then adds
         ! a random factor of -log(rand()) 
         
         implicit none
           ! function input parameters
-          real*8 n, eV
+          real*8 eV
+          ! parameter: air molecular density
+          real*8 n
+          parameter(n=3e22)
           ! return value and auxiliary function
           real*8 collision_time, nonrandom_collision_time
           
