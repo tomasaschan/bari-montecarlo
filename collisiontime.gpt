@@ -1,0 +1,18 @@
+set term pngcairo enhanced font "CM Roman"
+set output 'crosssection-eV.png'
+
+set title 'Cross-section vs. energy'
+set xlabel 'Energy, eV'
+set ylabel 'Cross-section, 10^20 m^2'
+set y2label 'Collision time, ns'
+
+set xrange [0:350]
+set yrange [0:10]
+set y2range [0:1]
+set ytics nomirror
+set y2tics
+
+plot 'collisiontime.out' using 1:2 title 'Cross section' axes x1y1 with lines, \
+     'collisiontime.out' using 1:3 title 'Collision time' axes x1y2 with lines
+#, \
+#     'output.out' using 1:3 title 'Position' with lines
