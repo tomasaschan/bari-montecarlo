@@ -1,32 +1,42 @@
 FC = mpif77
 FFLAGS=-Wall -g# -fcray-pointer
-RUNNER = runner
-INARGS = < input.in
-OUTARGS = > output.out
-CMD = ./$(RUNNER) $(INARGS) $(OUTARGS)
+RUNNER = simulation
+BINARIES = $(RUNNER) collisiontime
+CMD = ./$(RUNNER) < $(RUNNER).in > $(RUNNER).out
 VALGRINDOPTS = --suppressions=/usr/share/openmpi/openmpi-valgrind.supp
+
+install: all
+
+all: $(BINARIES)
 
 $(RUNNER): distribution.o helpers.o
 
-all: $(RUNNER)
-
-run: all
+run: $(RUNNER)
 	mpirun -np 1 $(CMD)
 
-runp: all
+runp: $(RUNNER)
 	mpirun -np 8 $(CMD)
 	
 clean: cleanout
-	rm -f *~ *.o .fuse_* $(RUNNER)
+	rm -f *~ *.o .fuse_* $(BINARIES)
 
 cleanout:
 	rm -f *.out *.png
 
-memcheck: all
+memcheck: $(RUNNER)
 	valgrind $(VALGRINDOPTS) $(CMD)
 
-memcheckp: all
+memcheckp: $(RUNNER)
 	mpirun -np 2 valgrind $(VALGRINDOPTS) $(CMD)
 
-plot:
-	gnuplot plotting.gpt
+plot: 
+	gnuplot $(RUNNER).gpt
+
+
+collisiontime: helpers.o
+
+runcoll: collisiontime
+	./collisiontime > collisiontime.out
+
+collplot:
+	gnuplot collisiontime.gpt
