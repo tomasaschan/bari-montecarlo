@@ -70,6 +70,10 @@
       function energy(v)
         ! Calculates the kinetic energy in eV for an electron which 
         ! moves at a velocity v (in m/s)
+        !
+        ! v is a 3-array that represents three coordinates
+        ! (the coordinate system is not important as long as
+        ! |v| = sqrt(v(1)^2+v(2)^2+v(3)^2)
         
         implicit none
           real*8 v(3), energy
@@ -77,4 +81,36 @@
           parameter(me=9.11E-31,e = 1.602176E-19)
           
           energy = .5*me*(v(1)*v(1) + v(2)*v(2) + v(3)*v(3)) / e
+      end
+      
+      subroutine seed_rand()
+        ! Use MPI to find a representation of the wall time that changes
+        ! rapidly (increments every 1e-7 seconds) and use that as an
+        ! argument to srand()
+      
+        implicit none
+        include 'mpif.h'
+        
+        integer t, ierr
+        integer*16 bt
+        
+        ! Get a high-precision time value from MPI, and shift it up so
+        ! that all significant digits are part of the integer truncation
+        bt = int(MPI_Wtime(ierr)*1e7, 16)
+        ! Truncate on the /left/ end of the big number, to get something
+        ! that varies quickly with time (i.e. varies as 1e-7 seconds)
+        ! Convert it to integer*4 so we can seed rand() with it
+        t = int(mod(bt, huge(t)), 4)
+        
+        ! Use the rapidly-changing number as seed for rand()
+        call srand(t)
+      end
+      
+      subroutine seed_rand_0()
+        ! Call srand() with a constant seed, to be used for testing or
+        ! producing reproducible simulation runs, but with a syntax
+        ! similar to seed_rand() above.
+        
+        implicit none
+        call srand(0)
       end
