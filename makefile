@@ -1,15 +1,15 @@
 FC = mpif77
 FFLAGS=-Wall -g# -fcray-pointer
+BINARIES = $(RUNNER) collisiontime onepart
 RUNNER = histogram
-BINARIES = $(RUNNER) collisiontime
 CMD = ./$(RUNNER) < $(RUNNER).in# > $(RUNNER).out
-VALGRINDOPTS = --suppressions=/usr/share/openmpi/openmpi-valgrind.supp
+VALGRINDOPTS = --suppressions=/usr/share/openmpi/openmpi-valgrind.supp --gen-suppressions=all
 
 install: all
 
 all: $(BINARIES)
 
-$(RUNNER): helpers.o
+histogram: helpers.o onepart.o
 
 run: $(RUNNER)
 	mpirun -np 1 $(CMD)
@@ -40,3 +40,8 @@ runcoll: collisiontime
 
 collplot:
 	gnuplot collisiontime.gpt
+
+
+list:
+	clear
+	ls -l --sort=extension --group-directories-first --color=auto
