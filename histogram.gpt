@@ -1,1 +1,16 @@
+set term pngcairo
 
+set output 'energyhistogram.png'
+
+set title 'Energy levels after 1 ns'
+
+
+set xlabel 'Energy, eV'
+set ylabel 'Count, normalized'
+set xrange [300:0] reverse
+
+#set logscale y
+
+
+#plot 'histogram.out' using ($1 < 300 ? $1 : NaN):($2 > 0 ? $2 : NaN): xtic(50) notitle with lines
+plot 'histogram.out' using 1:($2 > 0 ? $2 : NaN): xtic(50) notitle with lines

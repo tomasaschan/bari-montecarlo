@@ -1,35 +1,73 @@
       program histogram
         implicit none
         include 'mpif.h'
+      
+        integer ierr, rnk, nproc
+      
+        integer i, Nruns
+        real*8 E0, tfin, dt, start_t
+        parameter(E0=300.0, dt=1e-11)
+        integer bins(300), binsum(300), partsum
         
-        integer sz, rnk, ierr
-        
-        integer Nruns, onepart, npart, maxpart
-        parameter(Nruns = 100)
-        character*20 fname
-        
-        real*8 E0, tfin, dt
-        parameter(E0=300, tfin=2e-9, dt=1e-11)
         
         call MPI_Init(ierr)
+        call MPI_Comm_rank(MPI_COMM_WORLD, rnk, ierr)
+        call MPI_Comm_size(MPI_COMM_WORLD, nproc, ierr)
+
+        if (rnk.EQ.0) then
+          read *, tfin, Nruns
+        endif
+
+        call MPI_Bcast(tfin, 1, MPI_Real8, 0, MPI_Comm_world, ierr)
+        call MPI_Bcast(Nruns, 1, MPI_Integer, 0, MPI_Comm_world, ierr)
         
-        call MPI_Comm_size(MPI_Comm_world, sz, ierr)
-        call MPI_Comm_rank(MPI_Comm_world, rnk, ierr)
-      
-      
-        write(fname,'(A10,I0,A4)') 'histogram.', rnk, '.out'
-        open(unit=7+rnk, file=fname)
-        
-        npart = onepart(E0, tfin, dt, 7+rnk)
-        
-        call MPI_Reduce(npart, maxpart, 1, MPI_Integer, 
-     +                 MPI_MAX, 0, MPI_Comm_world)
-        
-        print *, 'Thread', rnk, ' got ', npart, ' particles.'
+        call seed_rand()
+
+        do i=1, 300
+          bins(i) = 0
+        enddo
+
+        start_t = MPI_Wtime(ierr)
+        do i=1, Nruns/nproc
+          call onepart(E0, tfin, dt, bins)
+        enddo
         
         if (rnk.EQ.0) then
-          print*, 'The maximum number of particles was ', maxpart
-        endif 
+          do i = 1, Nruns-nproc*Nruns/nproc
+            call onepart(E0, tfin, dt, bins)
+          enddo
+        endif
+        
+        call MPI_Barrier(MPI_Comm_world, ierr)
+        if (rnk.EQ.0) then
+          write(*,910),'Simulation', MPI_Wtime()-start_t
+        endif
+        call MPI_Barrier(MPI_Comm_world, ierr)
+        
+        start_t = MPI_Wtime()
+        call MPI_Reduce(bins, binsum, 300, MPI_INTEGER, MPI_SUM,
+     +                0, MPI_COMM_WORLD, ierr)
+        
+        call MPI_Barrier(MPI_Comm_world, ierr)
+        if (rnk.EQ.0) then
+          write(*,910),'Reduction', MPI_Wtime()-start_t
+        endif
+        call MPI_Barrier(MPI_Comm_world, ierr)
+        
+        
+        if (rnk.EQ.0) then
+          start_t = MPI_Wtime()
+          partsum = sum(binsum)
+          write(*,910),'Summation',MPI_Wtime()-start_t
+          
+          start_t = MPI_Wtime()
+          do i=1, 300
+             print *, i, binsum(i)/(partsum*1.0)
+          enddo
+          write(*,910),'Output',MPI_Wtime()-start_t
+
+        endif
+        
         call MPI_Finalize(ierr)
-      
+910   format('# ', a, ' took ', E8.2, ' s')
       end 

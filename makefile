@@ -1,8 +1,8 @@
 FC = mpif77
-FFLAGS=-Wall -g# -fcray-pointer
-BINARIES = $(RUNNER) collisiontime onepart
+FFLAGS=-Wall -g
+BINARIES = $(RUNNER) onepart iotest
 RUNNER = histogram
-CMD = ./$(RUNNER) < $(RUNNER).in# > $(RUNNER).out
+CMD = ./$(RUNNER) < $(RUNNER).in > $(RUNNER).out
 VALGRINDOPTS = --suppressions=/usr/share/openmpi/openmpi-valgrind.supp --gen-suppressions=all
 
 install: all
@@ -45,3 +45,5 @@ collplot:
 list:
 	clear
 	ls -l --sort=extension --group-directories-first --color=auto
+
+rotationtest: helpers.o
