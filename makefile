@@ -9,7 +9,7 @@ install: $(RUNNER)
 
 all: $(BINARIES)
 
-histogram: helpers.o onepart.o handle_collision_v.o
+histogram: helpers.o onepart.o handle_collision_e.o	
 
 run: $(RUNNER)
 	mpirun -np 1 $(CMD)
