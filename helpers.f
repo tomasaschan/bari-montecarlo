@@ -82,6 +82,14 @@
           
           energy = .5*me*(v(1)*v(1) + v(2)*v(2) + v(3)*v(3)) / e
       end
+
+      function random_real()
+        ! Abstraction over rand(), in case I find a better option
+
+        real*8 random_real
+
+        random_real = rand()
+      end
       
       subroutine seed_rand()
         ! Use MPI to find a representation of the wall time that changes
