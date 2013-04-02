@@ -4,29 +4,28 @@
       
         integer ierr, rnk, nproc
       
-        integer i, Nruns
-        real*8 E0, tfin, dt, start_t, all_t, NRunsreal
+        integer i, Nruns, Nevents, Totevents
+        real*8 E0, tfin, dt, start_t, all_t, NRunsreal, eI
         parameter(E0=300.0, dt=1e-11)
         integer bins(300), binsum(300), partsum
         
         
         call MPI_Init(ierr)        
 
-
-        if (rnk.EQ.0) then
-          all_t = MPI_Wtime() - all_t
-        endif
+        all_t = MPI_Wtime()
 
         call MPI_Comm_rank(MPI_Comm_world, rnk, ierr)
         call MPI_Comm_size(MPI_Comm_world, nproc, ierr)
 
         if (rnk.EQ.0) then
-          read *, tfin, NRunsreal
+          read *, tfin, NRunsreal, eI
           Nruns = int(NRunsreal)
           write(*,920), real(Nruns), tfin
           write(*,930), nproc
+          write(*,960), eI
 920       format('# Runs: ', eS9.1, ', t_end: ', Es8.1)
 930       format('# Number of processes: ', I0)
+960       format('# Ionization energy: ', F8.1)
         endif
 
         call MPI_Bcast(tfin, 1, MPI_Real8, 0, MPI_Comm_world, ierr)
@@ -37,10 +36,11 @@
         do i=1, 300
           bins(i) = 0
         enddo
+        Nevents = 0
 
         start_t = MPI_Wtime(ierr)
         do i=1, Nruns/nproc
-          call onepart(E0, tfin, dt, bins)
+          call onepart(E0, tfin, dt, bins, Nevents, eI)
         enddo
         
         if (rnk.EQ.0) then
@@ -56,12 +56,14 @@
 
         call MPI_Reduce(bins, binsum, 300, MPI_INTEGER, MPI_SUM,
      +                0, MPI_COMM_WORLD, ierr)
-        
-
+        call MPI_Reduce(Nevents, Totevents, 1, MPI_INTEGER, MPI_SUM,
+     +                0, MPI_COMM_WORLD, ierr)
+     
         if (rnk.EQ.0) then
           partsum = sum(binsum)
           do i=1, 300
-             write(*,900) i, binsum(i)/(partsum*1.0) * 100
+             write(*,900) i, float(binsum(i))
+c             /(partsum*1.0) * 100
           enddo
 900   format(I3,E15.2)
         endif
@@ -70,7 +72,10 @@
         if (rnk.EQ.0) then
           all_t = MPI_Wtime() - all_t
           write(*,910), 'Everyting', all_t
+          write(*,940) Totevents, int(Nruns*E0/13.4), 
+     +         Totevents/(Nruns*E0/13.4)
         endif
+940   format('# Number of events: ', I0, ' ', I0, ' ', f5.2)
         
         call MPI_Finalize(ierr)
 910   format('# ', a, ' took ', Es10.3, ' s')

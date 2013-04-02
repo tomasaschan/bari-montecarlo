@@ -1,9 +1,8 @@
-      subroutine handle_collision(N, es, tcs, idx1, idx2)
+      subroutine handle_collision(N, es, tcs, idx1, idx2, I)
         implicit none
           integer N, idx1, idx2
           real*8 es(N), tcs(N)
           real*8 I, ea, random_real, r, collision_time
-          parameter(I = 13.4)
 
           ea = es(idx1)-I
 

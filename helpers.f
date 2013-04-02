@@ -86,6 +86,7 @@
       function random_real()
         ! Abstraction over rand(), in case I find a better option
 
+        implicit none
         real*8 random_real
 
         random_real = rand()
