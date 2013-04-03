@@ -7,7 +7,7 @@
           real*8 eV
           ! parameter: air molecular density
           real*8 n
-          parameter(n=3e22)
+          parameter(n=3e21)
           ! return value and auxiliary function
           real*8 collision_time, nonrandom_collision_time
           
@@ -90,6 +90,19 @@
         real*8 random_real
 
         random_real = rand()
+      end
+
+      function random_von_Neumann()
+        ! Gets a random number from the probability distribution
+        ! for secondary electron energy, through von Neumann rejection
+
+        implicit none
+
+        real*8 random_von_Neumann, random_real, r, E
+        parameter(E=13)
+
+        r = random_real()*300
+        random_von_Neumann =  1/(1+(r/E)**2)
       end
       
       subroutine seed_rand()

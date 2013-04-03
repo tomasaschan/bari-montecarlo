@@ -2,12 +2,21 @@
         implicit none
         include 'mpif.h'
       
+900   format(I3,E15.2)
+910   format('# ', a, ' took ', Es10.3, ' s')
+920   format('# Runs: ', eS9.1, ', t_end: ', Es8.1)
+930   format('# Number of processes: ', I0)
+940   format('# Number of events: ', I0, ' ', I0, ' ', f5.2)
+960   format('# Ionization energy: ', F8.1)
+
         integer ierr, rnk, nproc
       
         integer i, Nruns, Nevents, Totevents
         real*8 E0, tfin, dt, start_t, all_t, NRunsreal, eI
         parameter(E0=300.0, dt=1e-11)
-        integer bins(300), binsum(300), partsum
+        integer binsize
+
+        integer bins(300), binsum(300), totsum
         
         
         call MPI_Init(ierr)        
@@ -23,14 +32,15 @@
           write(*,920), real(Nruns), tfin
           write(*,930), nproc
           write(*,960), eI
-920       format('# Runs: ', eS9.1, ', t_end: ', Es8.1)
-930       format('# Number of processes: ', I0)
-960       format('# Ionization energy: ', F8.1)
         endif
 
         call MPI_Bcast(tfin, 1, MPI_Real8, 0, MPI_Comm_world, ierr)
         call MPI_Bcast(Nruns, 1, MPI_Integer, 0, MPI_Comm_world, ierr)
+        call MPI_Bcast(eI, 1, MPI_Real8, 0, MPI_Comm_world, ierr)
+
         
+        call MPI_Barrier(MPI_Comm_world, ierr)
+
         call seed_rand()
 
         do i=1, 300
@@ -60,12 +70,10 @@
      +                0, MPI_COMM_WORLD, ierr)
      
         if (rnk.EQ.0) then
-          partsum = sum(binsum)
+          totsum = sum(binsum)
           do i=1, 300
-             write(*,900) i, float(binsum(i))
-c             /(partsum*1.0) * 100
+             write(*,900) i, float(binsum(i))/float(totsum) * 100
           enddo
-900   format(I3,E15.2)
         endif
         
         call MPI_Barrier(MPI_Comm_world, ierr)
@@ -75,8 +83,6 @@ c             /(partsum*1.0) * 100
           write(*,940) Totevents, int(Nruns*E0/13.4), 
      +         Totevents/(Nruns*E0/13.4)
         endif
-940   format('# Number of events: ', I0, ' ', I0, ' ', f5.2)
         
         call MPI_Finalize(ierr)
-910   format('# ', a, ' took ', Es10.3, ' s')
       end 

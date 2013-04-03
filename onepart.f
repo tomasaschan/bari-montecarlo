@@ -12,19 +12,18 @@
           real*8 E0, t, tfin, dt, dtp, eI
           real*8 es(Nspace), tcs(Nspace)
          
+C         Initialize simulation
           t = 0
           head = 1
-          
           call init_arrays(Nspace, es, E0, tcs)
           
+C         Run simulation of one electron
           do while (t .LE. tfin)
             colls_dt = 0
             
             do i=1, head
               dtp = dt
-              
-              do while(tcs(i) .LE. dtp 
-     +           .AND.tcs(i).GT.0.AND.(es(i)-eI).GT.0)
+              do while(tcs(i) .LE. dtp .AND. tcs(i) .GT. 0)
                 dtp = dtp - tcs(i)
                 colls_dt = colls_dt + 1
                 Nevents = Nevents + 1

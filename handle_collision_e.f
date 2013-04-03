@@ -1,48 +1,30 @@
-      subroutine handle_collision(N, es, tcs, idx1, idx2, I)
+      subroutine handle_collision(N, es, tcs, idx1, idx2, eI)
+C       Redistribute energy between the primary and secondary electrons,
+C       and update the collision times for both.
+        
+C       This version is based on energy only - it is the simplest possible
+C       implementation of the rigid sphere approximation.
+
         implicit none
           integer N, idx1, idx2
           real*8 es(N), tcs(N)
-          real*8 I, ea, random_real, r, collision_time
+          real*8 eI, ea, random_real, r, collision_time
 
-          ea = es(idx1)-I
+C         Calculate the available energy based on ionization energy
+          ea = es(idx1) - eI
 
-          if (ea.LT.0) then
-            return
-          endif
-
+C         Give a random fraction of the available energy to the secondary
           r = random_real()
           es(idx1) = ea*r
           es(idx2) = ea-es(idx1)
 
+C           if (ea + eI .GT. 295) then
+C             print *, es(idx1), es(idx2), es(idx1)+es(idx2)
+C           endif
+
+C         Calculate new collision times for both electrons
           tcs(idx1) = collision_time(es(idx1))
           tcs(idx2) = collision_time(es(idx2))
-C           real*8 es(N), tcs(N), collision_time, velocity, energy
-C           real*8 v1(3), v2(3), v0, cph, sph, th, pi, R(3)
-C           parameter(pi=4*atan(1.0))
-
-C           ! Scattering angles for the collision
-C           cph = 2*rand()-1
-C           sph = sqrt(1-cph*cph)
-C           th = 2*pi*rand()
-
-C           ! Initial velocity of the incoming electron
-C           v0 = velocity(es(idx1))
-
-C           ! Aux values
-C           R = (/ cos(th)*sph, sin(th)*sph, cph /)
-
-C           ! New velocity of both electrons
-C           v1 = v0/2 * ((/1,0,0/) + R)
-C           v2 = v0/2 * ((/1,0,0/) - R)
-          
-C           ! Set energies of both electrons
-C           es(idx1) = energy(v1)
-C           es(idx2) = energy(v2)
-          
-C           ! Calculate new collision times
-C           tcs(idx1) = collision_time(es(idx1))
-C           tcs(idx2) = collision_time(es(idx2))
-
 
       end
       

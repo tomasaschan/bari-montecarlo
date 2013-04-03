@@ -1,6 +1,6 @@
 FC = mpif77
 FFLAGS=-O3 -g
-BINARIES = $(RUNNER) onepart iotest
+BINARIES = $(RUNNER) 
 RUNNER = histogram
 CMD = ./$(RUNNER) < $(RUNNER).in > $(RUNNER).out
 VALGRINDOPTS = --suppressions=/usr/share/openmpi/openmpi-valgrind.supp --gen-suppressions=all
@@ -53,3 +53,4 @@ rotationtest: helpers.o
 
 measurespeedup:
 	
+testrandomvN: helpers.o
