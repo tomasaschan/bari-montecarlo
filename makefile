@@ -1,5 +1,5 @@
 FC = mpif77
-FFLAGS=-O3 -g
+FFLAGS=-O3 -g -Wall
 BINARIES = $(RUNNER) 
 RUNNER = histogram
 CMD = ./$(RUNNER) < $(RUNNER).in > $(RUNNER).out
@@ -35,6 +35,9 @@ memcheckp: $(RUNNER)
 plot: 
 #	gnuplot $(RUNNER).gpt
 	./histogram-plot.sh histogram.out
+
+showplot:
+	eog energyhistogram.png 2> /dev/null &
 
 collisiontime: helpers.o
 
