@@ -1,0 +1,98 @@
+LXcat, http://www.lxcat.laplace.univ-tlse.fr
+Generated on 28 Mar 2013. All rights reserved.
+
+
+EACH COLLISION PROCESS IS DEFINED BY A BLOCK CONSISTING OF
+
+1st line
+Keyword in capitals indicating the type of the collision. Possible collision types are 'elastic', 'effective',
+'excitation', 'ionization', or 'attachment' (capital letters required, key words are case sensitive), where 'elastic' is
+used to denote the elastic momentum transfer cross section and where 'effective' denotes the total momentum transfer
+cross section (sum of elastic momentum transfer and total inelastic cross sections). The latter is useful for solving
+the Boltzmann equation in the 2-term approximation.
+
+2nd line
+Name of the target particle species. This name is a character string, freely chosen by the user, e.g. 'Ar'. Optionally
+for excitation processes, the name of the corresponding excited state can be specified on the same line, separated from
+the first name either by arrow '->' or by double-head arrow '', e.g. 'Ar -> Ar*' and 'Ar  Ar*', respectively. In the
+later case BOLSIG+ will automatically define the inverse superelastic process, constructing the superelastic
+cross-section by detailed balancing, and considering the indicated excited state as the target. In this case, the ratio
+of statistical weights must be input in the 3rd line (see below).  Alternatively, superelastic collisions could be
+defined explicitly as excitation collisions with a negative electron energy loss with user input cross sections and
+species name, 'Ar*', for example.
+
+3rd line
+For elastic and effective collisions, the ratio of the electron mass to the target particle mass. For excitation or
+ionization collisions, the electron energy loss (nominally the threshold energy) in eV. For attachment, the 3rd line is
+missing. In case of an excitation process where an excited state has been indicated on the 2nd line using double-head
+arrow '', the 3rd line must specify also ratio of the statistical weights of the final state to the initial state as the
+second parameter in 3rd line; this is needed by BOLSIG+ to calculate the de-excitation cross-section.
+
+from 4th line (optionally)
+User comments and reference information, maximum 100 lines. ZDPlasKin reaction label could be indicated here, for
+example. The only constraint on format is that these comment lines must not start with a number.
+
+Finally
+Table of the cross section as a function of energy. The table starts and ends by a line of dashes '------' (at least 5),
+and has otherwise two numbers per line: the energy in eV and the cross section in m2.
+
+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+Morgan (Compilation of electron cross sections used by Kinema Research & Software)
+DESCRIPTION: Assembled over the course of 30 years WL Morgan and suitable for use with 2-term Boltzmann solvers.
+AUTHORS: W. Lowell Morgan, Kinema Research & Software
+REFERENCES: http://www.kinema.com
+
+CROSS SECTIONS
+
+Species/processes: Ar (4), C (4), C2H2 (8), C2H4 (7), C2H6 (7), C3H8 (7), CF4 (7), CH (3), CH2 (3), CH3 (3), CH4 (11),
+Cl2 (7), CO (18), CO2 (13), F2 (11), H (4), H2 (17), H2(p) (2), H2(s) (2), H2O (10), HCl (8), He (4), Kr (4), N (2), N2
+(25), N2(a) (4), Ne (4), NH3 (8), NO (10), O (5), O2 (18), O2(a1D) (4), O2(B1S) (4), O3 (4), O^- (2), SF6 (9), SiH4 (7),
+Xe (4)
+Number of downloads from 3 November 2010: 5371
+Last update: 6 December 2012, 21:04
+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+COMMENT
+N2(a)
+the only processes considered for N2(A) are elastic scattering and ionization. This is suitable, for example, for using
+N2(a) as a minor component in a gas mixture
+-----------------------------------------------------------------------------------------------------------------------
+
+EFFECTIVE
+N2(a)
+  1.950e-5 / mass ratio
+UPDATED: 2011-06-06 18:17:44
+------------------------------------------------------------
+ 0.0000e+0	1.0000e-20
+ 1.0000e+2	1.0000e-20
+------------------------------------------------------------
+
+IONIZATION
+N2(a) -> N2^+
+  8.560e+0 / threshold energy
+UPDATED: 2010-10-21 14:22:39
+------------------------------------------------------------
+ 8.5600e+0	 0.0000e+0
+ 1.0000e+1	1.8000e-21
+ 1.1200e+1	4.1000e-21
+ 1.4500e+1	1.0000e-20
+ 2.0000e+1	1.8700e-20
+ 3.0000e+1	2.9500e-20
+ 4.0000e+1	3.5000e-20
+ 5.0000e+1	3.7000e-20
+ 6.0000e+1	3.7500e-20
+ 7.0000e+1	3.6500e-20
+ 8.0000e+1	3.5500e-20
+ 9.0000e+1	3.4000e-20
+ 1.0000e+2	3.2500e-20
+ 1.3200e+2	2.8000e-20
+ 2.0000e+2	1.9000e-20
+------------------------------------------------------------
+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+

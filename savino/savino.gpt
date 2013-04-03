@@ -8,9 +8,9 @@ set output 'savino.png'
 #set ylabel 'Count, normalized'
 set xrange [0:310]
 
+set yrange[1:100]
 set logscale y
-set yrange[1:10000]
 
 #plot 'histogram.out' using ($1 < 300 ? $1 : NaN):($2 > 0 ? $2 : NaN): xtic(50) notitle with lines
 #plot 'histogram.out' using 1:($2 > 0 ? $2 : NaN): xtic(50) notitle with lines
-plot 'savino2-hist.out' using 1:2 : xtic(50) notitle with lines
+plot 'savino3-hist.out' using 1:2 : xtic(50) notitle with lines
