@@ -1,6 +1,6 @@
 FC = mpif77
 FFLAGS = -Wall -g
-EXE = collissiontime2
+EXE = collissiontime
 
 $(EXE): helpers.o
 
