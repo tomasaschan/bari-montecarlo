@@ -1,4 +1,4 @@
-      subroutine onepart(E0, tfin, dt, bins, Nevents, eI)
+      subroutine onepart(E0, tfin, dt, bins, Nbins, eI)
         implicit none
           ! The file handle to write output to
           !integer fhandle
@@ -8,7 +8,8 @@
           parameter(Nspace=100)
           
           ! Some parameters for simulation
-          integer i, head, colls_dt, bins(300), Nevents
+          integer i, head, colls_dt, Nbins
+          integer bins(Nbins)
           real*8 E0, t, tfin, dt, dtp, eI
           real*8 es(Nspace), tcs(Nspace)
          
@@ -26,7 +27,6 @@ C         Run simulation of one electron
               do while(tcs(i) .LE. dtp .AND. tcs(i) .GT. 0)
                 dtp = dtp - tcs(i)
                 colls_dt = colls_dt + 1
-                Nevents = Nevents + 1
                 call handle_collision(Nspace,es,tcs,i,head+colls_dt,eI)
               enddo
               

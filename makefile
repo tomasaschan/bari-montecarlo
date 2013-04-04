@@ -1,15 +1,17 @@
 FC = mpif77
-FFLAGS=-O3 -g -Wall
-BINARIES = $(RUNNER) 
-RUNNER = histogram
-CMD = ./$(RUNNER) < $(RUNNER).in > $(RUNNER).out
+FFLAGS=-O0 -g -Wall
+BINARIES = $(RUNNER) histogram
+RUNNER = simulation
+CMD = ./$(RUNNER) < $(RUNNER).in # > $(RUNNER).out
 VALGRINDOPTS = --suppressions=/usr/share/openmpi/openmpi-valgrind.supp --gen-suppressions=all
 
 install: $(RUNNER)
 
 all: $(BINARIES)
 
-histogram: helpers.o onepart.o handle_collision_e.o	
+simulation: io.o random.o
+
+histogram: helpers.o onepart.o handle_collision_e.o	read_and_share_data.o
 
 run: $(RUNNER)
 	mpirun -np 1 $(CMD)
