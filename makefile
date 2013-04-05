@@ -1,6 +1,6 @@
 FC = mpif77
 FFLAGS=-O3 -g
-BINARIES = $(RUNNER) 
+BINARIES = $(RUNNER)
 RUNNER = histogram
 CMD = ./$(RUNNER) < $(RUNNER).in > $(RUNNER).out
 VALGRINDOPTS = --suppressions=/usr/share/openmpi/openmpi-valgrind.supp --gen-suppressions=all
@@ -36,8 +36,8 @@ plot:
 #	gnuplot $(RUNNER).gpt
 	./histogram-plot.sh histogram.out
 
-showplot:
-	eog energyhistogram.png 2> /dev/null &
+showplots:
+	eog *.png 2> /dev/null &
 
 collisiontime: helpers.o
 
