@@ -2,7 +2,7 @@
         implicit none
         include 'mpif.h'
       
-900   format(I3,E15.2)
+900   format(I0,E15.2)
 910   format('# ', a, ' took ', Es10.3, ' s')
 920   format('# Runs: ', eS9.1, ', t_end: ', Es8.1)
 930   format('# Number of processes: ', I0)
@@ -25,10 +25,11 @@
         call MPI_Comm_rank(MPI_Comm_world, rnk, ierr)
         call MPI_Comm_size(MPI_Comm_world, nproc, ierr)
 
+
+        call read_and_share(rnk, Nruns, tfin, dt, E0, eI)
+
         if (rnk.EQ.0) then
-          read *, tfin, NRunsreal, eI
-          Nruns = int(NRunsreal)
-          write(*,920), real(Nruns), tfin
+          write(*,920), real(Nruns), tfin, e0
           write(*,930), nproc
           write(*,960), eI
         endif
@@ -54,7 +55,7 @@
         
         if (rnk.EQ.0) then
           do i = 1, Nruns-nproc*Nruns/nproc
-            call onepart(E0, tfin, dt, bins)
+            call onepart(E0, tfin, dt, bins, Nbins, eI)
           enddo
         endif
         

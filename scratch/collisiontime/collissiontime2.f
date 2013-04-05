@@ -3,7 +3,7 @@
         
           integer i
           real*8 collision_time, ct, eV
-          parameter(eV=300.0)
+          parameter(eV=1000.0)
           call srand(0)
          
           do i = 1, 100000

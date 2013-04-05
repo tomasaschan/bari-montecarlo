@@ -5,24 +5,23 @@
         implicit none
           ! function input parameters
           real*8 eV
+          ! parameter: air molecular density
+          real*8 n
+          parameter(n=3e21)
           ! return value and auxiliary function
           real*8 collision_time, nonrandom_collision_time
-
-          collision_time = -log(rand())*nonrandom_collision_time(eV)
+          
+          collision_time = -log(rand())*nonrandom_collision_time(n,eV)
       end
       
-      function nonrandom_collision_time(eV)
+      function nonrandom_collision_time(n, eV)
         ! Calculates the collision time for a particle of energy eV,
         ! given a particle density of the medium with which it collides
         ! of n m^(-3).
         
         implicit none
-          ! function input parameter
-          real*8 eV
-          ! parameter: air molecular density
-          real*8 n
-          parameter(n=3e21)
-
+          ! function input parameters
+          real*8 n, eV
           ! function return value, and helper functions
           real*8 nonrandom_collision_time, cross_section, velocity
           ! intermediate quantity
@@ -45,15 +44,14 @@
           real q0, q1, q2, q3, q4, l0, l1, E0
           parameter(q0=-2.2007449E-20,q1=2.855227E-21,q2=-4.6951205E-23)
           parameter(q3=3.031989421E-25,q4=-6.335964E-28)
-          parameter(l0=1.21665367e-20, l1=1.86036e-18)
-
-          parameter(E0=85)
+          parameter(l0=4.61761822E-20, l1=-1.3624567E-22)
+          parameter(E0=70)
 
 
           if (eV.LT.E0) then
               cross_section=q0+q1*eV+q2*eV*eV+q3*eV*eV*eV+q4*eV*eV*eV*eV
           else 
-              cross_section=l0+l1/eV
+              cross_section=l0+l1*eV
           endif
       end
 
@@ -63,8 +61,8 @@
         
         implicit none
           real*8 eV, velocity
-          real*8 me, e
-          parameter(me=9.11E-31, e = 1.602176E-19)
+          real me, e
+          parameter(me=9.11E-31,e = 1.602176E-19)
 
           velocity = sqrt(2*eV*e/me)
       end
@@ -83,6 +81,28 @@
           parameter(me=9.11E-31,e = 1.602176E-19)
           
           energy = .5*me*(v(1)*v(1) + v(2)*v(2) + v(3)*v(3)) / e
+      end
+
+      function random_real()
+        ! Abstraction over rand(), in case I find a better option
+
+        implicit none
+        real*8 random_real
+
+        random_real = rand()
+      end
+
+      function random_von_Neumann()
+        ! Gets a random number from the probability distribution
+        ! for secondary electron energy, through von Neumann rejection
+
+        implicit none
+
+        real*8 random_von_Neumann, random_real, r, E
+        parameter(E=13)
+
+        r = random_real()*300
+        random_von_Neumann =  1/(1+(r/E)**2)
       end
       
       subroutine seed_rand()
