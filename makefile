@@ -36,6 +36,9 @@ plot:
 #	gnuplot $(RUNNER).gpt
 	./histogram-plot.sh histogram.out
 
+showplot:
+	eog energyhistogram.png 2> /dev/null &
+
 collisiontime: helpers.o
 
 runcoll: collisiontime
