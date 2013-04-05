@@ -44,14 +44,13 @@
           real q0, q1, q2, q3, q4, l0, l1, E0
           parameter(q0=-2.2007449E-20,q1=2.855227E-21,q2=-4.6951205E-23)
           parameter(q3=3.031989421E-25,q4=-6.335964E-28)
-          parameter(l0=4.61761822E-20, l1=-1.3624567E-22)
+          parameter(l0=1.21665367425970e-20, l1=1.86036008409668e-18)
           parameter(E0=70)
-
 
           if (eV.LT.E0) then
               cross_section=q0+q1*eV+q2*eV*eV+q3*eV*eV*eV+q4*eV*eV*eV*eV
           else 
-              cross_section=l0+l1*eV
+              cross_section=l0+l1/eV
           endif
       end
 
