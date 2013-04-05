@@ -11,12 +11,11 @@
 
         integer ierr, rnk, nproc
       
-        integer i, Nruns, Nevents, Totevents
+        integer i, Nruns, Nevents, Totevents, Nbins
         real*8 E0, tfin, dt, start_t, all_t, NRunsreal, eI
-        parameter(E0=300.0, dt=1e-11)
+        parameter(E0=1e3, dt=1e-11, Nbins=1000)
         integer binsize
-
-        integer bins(300), binsum(300), totsum
+        integer bins(Nbins), binsum(Nbins), totsum
         
         
         call MPI_Init(ierr)        
@@ -43,14 +42,14 @@
 
         call seed_rand()
 
-        do i=1, 300
+        do i=1, Nbins
           bins(i) = 0
         enddo
         Nevents = 0
 
         start_t = MPI_Wtime(ierr)
         do i=1, Nruns/nproc
-          call onepart(E0, tfin, dt, bins, Nevents, eI)
+          call onepart(E0, tfin, dt, Nbins, bins, Nevents, eI)
         enddo
         
         if (rnk.EQ.0) then
@@ -64,14 +63,14 @@
           write(*,910),'Simulation', MPI_Wtime()-start_t
         endif
 
-        call MPI_Reduce(bins, binsum, 300, MPI_INTEGER, MPI_SUM,
+        call MPI_Reduce(bins, binsum, Nbins, MPI_INTEGER, MPI_SUM,
      +                0, MPI_COMM_WORLD, ierr)
         call MPI_Reduce(Nevents, Totevents, 1, MPI_INTEGER, MPI_SUM,
      +                0, MPI_COMM_WORLD, ierr)
      
         if (rnk.EQ.0) then
           totsum = sum(binsum)
-          do i=1, 300
+          do i=1, Nbins
              write(*,900) i, float(binsum(i))/float(totsum) * 100
           enddo
         endif

@@ -1,14 +1,14 @@
-      subroutine onepart(E0, tfin, dt, bins, Nevents, eI)
+      subroutine onepart(E0, tfin, dt, Nbins, bins, Nevents, eI)
         implicit none
           ! The file handle to write output to
           !integer fhandle
 
           ! How many particles we allocate space for
-          integer Nspace
+          integer Nspace, Nbins
           parameter(Nspace=100)
           
           ! Some parameters for simulation
-          integer i, head, colls_dt, bins(300), Nevents
+          integer i, head, colls_dt, bins(Nbins), Nevents
           real*8 E0, t, tfin, dt, dtp, eI
           real*8 es(Nspace), tcs(Nspace)
          
