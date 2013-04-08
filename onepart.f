@@ -5,7 +5,7 @@
 
           ! How many particles we allocate space for
           integer Nspace, Nbins
-          parameter(Nspace=100)
+          parameter(Nspace=10000)
           
           ! Some parameters for simulation
           integer i, head, colls_dt, bins(Nbins), Nevents
@@ -26,7 +26,6 @@ C         Run simulation of one electron
               do while(tcs(i) .LE. dtp .AND. tcs(i) .GT. 0)
                 dtp = dtp - tcs(i)
                 colls_dt = colls_dt + 1
-                Nevents = Nevents + 1
                 call handle_collision(Nspace,es,tcs,i,head+colls_dt,eI)
               enddo
               
@@ -39,7 +38,7 @@ C         Run simulation of one electron
           enddo
  
           do i=1, head
-            bins(int(es(i))) = bins(int(es(i))) + 1
+            bins(int(es(i)*E0/float(Nbins))) = bins(int(es(i))) + 1
           enddo
       end
 
