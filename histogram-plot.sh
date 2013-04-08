@@ -10,7 +10,7 @@ set title '$my_title'
 
 set xlabel 'Energy, eV'
 set ylabel 'Probability, %'
-set xrange [0:1000]
+set xrange [0:1005]
 
 set logscale y
 
