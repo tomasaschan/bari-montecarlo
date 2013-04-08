@@ -2,7 +2,7 @@
         implicit none
         include 'mpif.h'
       
-900   format(I3,E15.2)
+900   format(E15.2,E15.2)
 910   format('# ', a, ' took ', Es10.3, ' s')
 920   format('# Runs: ', eS9.1, ', t_end: ', Es8.1)
 930   format('# Number of processes: ', I0)
@@ -13,7 +13,7 @@
       
         integer i, Nruns, Nevents, Totevents, Nbins
         real*8 E0, tfin, dt, start_t, all_t, NRunsreal, eI
-        parameter(E0=1e3, dt=1e-11, Nbins=1000)
+        parameter(E0=1e3, dt=1e-11, Nbins=1e3)
         integer binsize
         integer bins(Nbins), binsum(Nbins), totsum
         
@@ -71,14 +71,14 @@
         if (rnk.EQ.0) then
           totsum = sum(binsum)
           do i=1, Nbins
-             write(*,900) i, float(binsum(i))/float(totsum) * 100
+             write(*,900)
+     +         i*E0/float(Nbins), float(binsum(i))/float(totsum)*100
           enddo
         endif
         
         call MPI_Barrier(MPI_Comm_world, ierr)
         if (rnk.EQ.0) then
-          all_t = MPI_Wtime() - all_t
-          write(*,910), 'Everyting', all_t
+          write(*,910), 'Everyting', MPI_Wtime() - all_t
           write(*,940) Totevents, int(Nruns*E0/13.4), 
      +         Totevents/(Nruns*E0/13.4)
         endif
