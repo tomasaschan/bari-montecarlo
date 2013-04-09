@@ -9,13 +9,14 @@ install: $(RUNNER)
 
 all: $(BINARIES)
 
-histogram: physics.o random.o onepart.o handle_collision_e.o	
+histogram: single_particle.o physics.o random.o handle_collision_e.o io.o
 
 run: $(RUNNER)
 	mpirun -np 1 $(CMD)
 
 runp: $(RUNNER)
 	mpirun -np 8 $(CMD)
+	cat $(RUNNER).out | grep \#
 
 runvp: $(RUNNER)
 	mpirun -np $(NPROC) $(CMD)

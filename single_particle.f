@@ -1,4 +1,4 @@
-      subroutine onepart(E0, tfin, dt, Nbins, bins, Nevents, eI)
+      subroutine onepart(E0, tfin, dt, Nbins, bins, eI)
         implicit none
           ! The file handle to write output to
           !integer fhandle
@@ -8,7 +8,7 @@
           parameter(Nspace=10000)
           
           ! Some parameters for simulation
-          integer i, head, colls_dt, bins(Nbins), Nevents
+          integer i, head, colls_dt, bins(Nbins)
           real*8 E0, t, tfin, dt, dtp, eI
           real*8 es(Nspace), tcs(Nspace)
          
@@ -33,7 +33,6 @@ C         Run simulation of one electron
             enddo
           
             head = head + colls_dt
-
             t = t+dt
           enddo
  
