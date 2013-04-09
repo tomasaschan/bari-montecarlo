@@ -1,18 +1,18 @@
-      subroutine read_cross_section_data(fname, N, cs)
+      subroutine read_cross_section_data(fname, Nrows, Ncols, cs)
         implicit none
 
         ! Input parameters
-        integer N
-        real*8 cs(N,2)
+        integer Nrows, Ncols
+        real*8 cs(Nrows, Ncols)
         character*30 fname
 
         ! Other variables
-        integer f, i, status
+        integer f, row, col, status
         parameter(f=15)
 
         open(f, file=fname, status='old')
 
-        read(f, *) cs
+        read(f, *) ((cs(row,col),col=1,Ncols),row=1,Nrows)
       end
 
       function lines_in_file(fname)
