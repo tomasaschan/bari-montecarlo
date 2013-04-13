@@ -32,16 +32,10 @@ C         Calculate new collision times for both electrons
 
         real*8, intent(in) :: ea
         real*8 secondary_energy
-        real*8 r1, r2, E2, random_real
-        parameter(E2=13*13)
-        r1 = 0
-        r2 = 0
+        real*8 r, E, random_real
+        parameter(E=13)
 
-        do while (r2*(E2+r1*r1).lt.E2)
-          r1 = random_real()*ea
-          r2 = random_real()
-
-          secondary_energy = r1
-        end do
-
+        r = random_real()
+        secondary_energy = E*tan(atan(ea/E)*r)
+        
       end

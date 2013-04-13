@@ -1,4 +1,4 @@
-      subroutine onepart(E0, tfin, dt, Nbins, bins, eI)
+      subroutine onepart(e0, tfin, dt, Nbins, bins, eI)
         implicit none
           ! The file handle to write output to
           !integer fhandle
@@ -9,13 +9,13 @@
           
           ! Some parameters for simulation
           integer i, head, colls_dt, bins(Nbins)
-          real*8 E0, t, tfin, dt, dtp, eI
+          real*8 e0, t, tfin, dt, dtp, eI
           real*8 es(Nspace), tcs(Nspace)
          
 C         Initialize simulation
           t = 0
           head = 1
-          call init_arrays(Nspace, es, E0, tcs)
+          call init_arrays(Nspace, es, e0, tcs)
           
 C         Run simulation of one electron
           do while (t .LE. tfin)
@@ -37,18 +37,18 @@ C         Run simulation of one electron
           enddo
  
           do i=1, head
-            bins(int(es(i)*E0/float(Nbins))) = bins(int(es(i))) + 1
+            bins(int(es(i)*e0/float(Nbins))) = bins(int(es(i))) + 1
           enddo
       end
 
-      subroutine init_arrays(N, es, E0, tcs)
+      subroutine init_arrays(N, es, e0, tcs)
         implicit none
         
         integer N,i
-        real*8 es(N), tcs(N), E0, collision_time
+        real*8 es(N), tcs(N), e0, collision_time
         
-        es(1) = E0
-        tcs(1) = collision_time(E0)
+        es(1) = e0
+        tcs(1) = collision_time(e0)
         do i=2, N-1
           es(i) = 0
           tcs(i) = 0
