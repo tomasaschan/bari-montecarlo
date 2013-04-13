@@ -3,33 +3,29 @@
 
         integer seed, i, N
         parameter(N = 500000)
-        real*8 xi1, xi2, z, E0
-        parameter(E0 = 1e3)
-        real*8 a2, random_real, pi
-        parameter(a2 = 13*13, pi=4*atan(1.0))
+        real*8 u, E0, e, Ebar, random_real
+        parameter(E0 = 1e2, Ebar=13)
 
         seed = 0
         call seed_rand(seed)
 
         do i = 1, N
+          u = random_real()
 
-110       xi1 = random_real()*E0
-          xi2 = random_real()
-          
-          if (xi2*(a2+xi1*xi1).gt.a2) goto 110
+          e = Ebar*tan(atan(E0/Ebar)*u)
 
-          z = xi1
-
-          write(*, '(F18.13)') z
+          write(*, '(F18.13)') e
         enddo
 
       end
+
+
 
       subroutine energysplit2()
         implicit none
 
         integer i, N, ierr
-        parameter(N=1e6)
+        parameter(N=int(1e6))
         real*8 ea, secondary_energy
         parameter(ea=2e3)
 

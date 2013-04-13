@@ -6,7 +6,7 @@
         real*8, allocatable :: cs(:,:)
 
         integer :: Nrows_i, Ncols_interp
-        parameter(Nrows_i=1e3, Ncols_interp=Ncols)
+        parameter(Nrows_i=1e5, Ncols_interp=Ncols)
         real*8 :: interp(Nrows_i, Ncols_interp)
         real*8 x0, x1
         character*30 fname
@@ -17,8 +17,8 @@
 
         allocate(cs(Nrows,Ncols))
 
-        print *, "# Reading from file ", fname
-        print *, "# x0: ", x0, ", x1: ", x1
+        print *, "# Reading csdata from file ", fname
+        write(*,'(A,F6.2,A,F6.1)'),"#     x0:", x0, ", x1:", x1
 
         call read_cross_section_data(fname, Nrows, Ncols, cs)
 

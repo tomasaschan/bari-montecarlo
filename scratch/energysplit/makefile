@@ -1,5 +1,5 @@
 FC = mpif77
-FFLAGS=-O3 -g
+FFLAGS=-O3 -g -Wall
 BINARIES = $(RUNNER)
 RUNNER = energysplit
 CMD = ./$(RUNNER) > $(RUNNER).out

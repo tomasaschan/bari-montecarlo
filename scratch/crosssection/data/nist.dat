@@ -877,29 +877,6 @@ Return to atom/molecule: <a href="/cgi-bin/Ionization/table.pl?ionization=N2">N<
 A   {text-decoration: none}
 -->
 </STYLE>
-<title>Electron-Impact Ionization Cross Section for Nitrogen molecule at 200 eV</title>
-</head>
-<body BGColor="#FFFFFF">
-T is 200
-Here are the results of your query:<p>
-For N<sub>2</sub>, at 200 eV, <img src="/Images/sigma.gif" alt="sigma"><sub>BEB</sub> = 2.273 &Aring;<sup>2</sup>
-<hr>
-<form method=POST action="/cgi-bin/Ionization/parsesv.pl?N2">
-Enter the incident energy, <b>T</b>=
-<input type=text name=T size=6> eV
-<br>Click <input type=submit value="here"> to calculate cross section
-<img src="/Images/sigma.gif" alt="sigma"><sub>BEB</sub>
-</form>
-<hr>
-Return to atom/molecule: <a href="/cgi-bin/Ionization/table.pl?ionization=N2">N<sub>2</sub></a>.
-</body>
-</html><html>
-<head>
-<STYLE TYPE="text/CSS">
-<!--
-A   {text-decoration: none}
--->
-</STYLE>
 <title>Electron-Impact Ionization Cross Section for Nitrogen molecule at 300 eV</title>
 </head>
 <body BGColor="#FFFFFF">
@@ -1274,29 +1251,6 @@ A   {text-decoration: none}
 T is 1900
 Here are the results of your query:<p>
 For N<sub>2</sub>, at 1900 eV, <img src="/Images/sigma.gif" alt="sigma"><sub>BEB</sub> = 0.543 &Aring;<sup>2</sup>
-<hr>
-<form method=POST action="/cgi-bin/Ionization/parsesv.pl?N2">
-Enter the incident energy, <b>T</b>=
-<input type=text name=T size=6> eV
-<br>Click <input type=submit value="here"> to calculate cross section
-<img src="/Images/sigma.gif" alt="sigma"><sub>BEB</sub>
-</form>
-<hr>
-Return to atom/molecule: <a href="/cgi-bin/Ionization/table.pl?ionization=N2">N<sub>2</sub></a>.
-</body>
-</html><html>
-<head>
-<STYLE TYPE="text/CSS">
-<!--
-A   {text-decoration: none}
--->
-</STYLE>
-<title>Electron-Impact Ionization Cross Section for Nitrogen molecule at 2000 eV</title>
-</head>
-<body BGColor="#FFFFFF">
-T is 2000
-Here are the results of your query:<p>
-For N<sub>2</sub>, at 2000 eV, <img src="/Images/sigma.gif" alt="sigma"><sub>BEB</sub> = 0.521 &Aring;<sup>2</sup>
 <hr>
 <form method=POST action="/cgi-bin/Ionization/parsesv.pl?N2">
 Enter the incident energy, <b>T</b>=
