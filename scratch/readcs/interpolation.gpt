@@ -1,5 +1,0 @@
-set terminal pngcairo
-set output 'interpolation.png'
-
-plot 'N2C_1.spaces.txt' w points linecolor rgb "blue" notitle, \
-     'tester.out' u 2:3 w lines notitle
