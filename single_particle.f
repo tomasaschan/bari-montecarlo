@@ -1,19 +1,20 @@
-      subroutine onepart(e0, tfin, dt, Nbins, bins, eI)
+      subroutine onepart(e0, tfin, dt, Nbins, Ntimes, bins, eI)
         implicit none
           ! The file handle to write output to
           !integer fhandle
 
           ! How many particles we allocate space for
-          integer Nspace, Nbins
-          parameter(Nspace=10000)
+          integer Nspace, Nbins, Ntimes
+          parameter(Nspace=100)
           
           ! Some parameters for simulation
-          integer i, head, colls_dt, bins(Nbins)
+          integer i, head, colls_dt, bins(Nbins, Ntimes), idx, tidx
           real*8 e0, t, tfin, dt, dtp, eI
           real*8 es(Nspace), tcs(Nspace)
          
 C         Initialize simulation
           t = 0
+          tidx = 1
           head = 1
           call init_arrays(Nspace, es, e0, tcs)
           
@@ -34,10 +35,18 @@ C         Run simulation of one electron
           
             head = head + colls_dt
             t = t+dt
+
+            do i=1, head
+              idx = ceiling(es(i)*(Nbins-1)/e0)
+              bins(idx, tidx) = bins(idx, tidx) + 1 
+            enddo
+            tidx = tidx + 1
+
           enddo
  
           do i=1, head
-            bins(int(es(i)*e0/float(Nbins))) = bins(int(es(i))) + 1
+            idx = int(es(i)*e0/float(Nbins))
+            bins(idx, Ntimes) = bins(idx, Ntimes) + 1
           enddo
       end
 

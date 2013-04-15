@@ -2,7 +2,7 @@
         implicit none
         include 'mpif.h'
       
-900   format(E15.2,E15.2)
+900   format(3(E15.8))
 910   format('# ', a, ' took ', Es10.3, ' s')
 !940   format('# Number of events: ', I0, ' ', I0, ' ', f5.2)
 
@@ -24,10 +24,14 @@
         common /cs/ cs_data, x0, x1
         
         ! Bins for summarizing the histogram
-        integer i, Nbins
+        integer i, it, Nbins, Ntimes
         parameter(Nbins=int(1e3))
  !       integer binsize
-        integer bins(Nbins), binsum(Nbins), totsum
+        integer, allocatable :: bins(:,:), binsum(:,:), totsum(:)
+        real*8, allocatable :: norm_factor(:)
+
+        ! Variables for output
+        real*8 t, e, p
 
         ! Timing of the simulation
         double precision allt, startt, endt
@@ -42,49 +46,71 @@
         ! Interpolate cross-section data, and share with all processes
         call get_interpolation(fname,Ninterp,cs_data,x0,x1,rnk)
 
-        call MPI_Barrier(MPI_Comm_world, ierr)
+        Ntimes = int(ceiling(tfin/dt))
+        allocate(bins(Nbins, Ntimes))
+        allocate(binsum(Nbins, Ntimes))
 
         ! Seed pseudo-random number generator
         call seed_rand()
 
+        call MPI_Barrier(MPI_Comm_world, ierr)
+
         allt = MPI_Wtime()
 
-        do i=1, Nbins
-          bins(i) = 0
-        enddo
+        bins = 0
+        
+        ! RUN SIMULATION
 
         startt = MPI_Wtime()
         do i=1, Nruns/nproc
-          call onepart(e0, tfin, dt, Nbins, bins, eI)
+          call onepart(e0, tfin, dt, Nbins, Ntimes, bins, eI)
         enddo
         
         if (rnk.EQ.0) then
           do i = 1, Nruns-nproc*Nruns/nproc
-            call onepart(e0, tfin, dt, Nbins, bins, eI)
+            call onepart(e0, tfin, dt, Nbins, Ntimes, bins, eI)
           enddo
         endif
-        
+
 !        call MPI_Barrier(MPI_Comm_world, ierr)
         if (rnk.EQ.0) then
           endt = MPI_Wtime()
           write(*,910) 'Simulation', endt-startt
         endif
 
-        call MPI_Reduce(bins, binsum, Nbins, MPI_INTEGER, MPI_SUM,
+        ! REDUCE RESULTS TO HISTOGRAM
+
+        call MPI_Reduce(bins,binsum,Nbins*Ntimes,MPI_INTEGER,MPI_SUM,
      +                0, MPI_COMM_WORLD, ierr)
      
         if (rnk.EQ.0) then
-          totsum = sum(binsum)
-          do i=1, Nbins
-             write(*,900)
-     +         i*E0/float(Nbins), float(binsum(i))/float(totsum)*100
+          allocate(totsum(Ntimes))
+          totsum = sum(binsum,dim=1)
+          norm_factor = 100/float(totsum)
+
+
+          do it=1, Ntimes
+            do i=1, Nbins
+              t = dt*it
+              e = i*e0/float(Nbins)
+              p = float(binsum(i,it))*norm_factor(it)
+              write(*,900) t, e, p
+            enddo
+            write (*,*) " "
           enddo
+
+          deallocate(totsum)
         endif
-        
+
 !        call MPI_Barrier(MPI_Comm_world, ierr)
         if (rnk.EQ.0) then
           write(*,910), 'Everyting', MPI_Wtime() - allt
         endif
+
+        deallocate(bins)
+        deallocate(binsum)
+
+        ! TERMINATE MPI
         
         call finalize_mpi()
       end 

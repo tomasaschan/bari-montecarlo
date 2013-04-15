@@ -18,7 +18,7 @@ run: $(RUNNER)
 	mpirun -np 1 $(CMD)
 
 runp: $(RUNNER)
-	mpirun -np 8 $(CMD); alert
+	mpirun -np 8 $(CMD)
 	grep $(OUTFILE) -e \#
 
 runvp: $(RUNNER)

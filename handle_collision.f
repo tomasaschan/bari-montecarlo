@@ -8,13 +8,13 @@ C       implementation of the rigid sphere approximation.
         implicit none
           integer N, idx1, idx2
           real*8 es(N), tcs(N)
-          real*8 eI, ea, esec, collision_time, secondary_energy_simple
+          real*8 eI, ea, esec, collision_time, secondary_energy
 
 C         Calculate the available energy based on ionization energy
           ea = es(idx1) - eI
 
 C         Give a random fraction of the available energy to the secondary
-          esec = secondary_energy_simple(ea)
+          esec = secondary_energy(ea)
           ! Make sure we conserve energy
           !do while (esec.gt.ea)
           !  esec = secondary_energy(ea)
@@ -49,3 +49,4 @@ C         Calculate new collision times for both electrons
 
         secondary_energy_simple = ea*random_real()
       end
+      
