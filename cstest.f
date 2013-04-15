@@ -20,8 +20,8 @@
         real*8 x0, x1
         common /cs/ cs_data, x0, x1
         
-        real*8 current_energy, end_energy, denergy, cs, v, nrct
-        real*8 cross_section, nonrandom_collision_time, velocity
+        real*8 current_energy, end_energy, denergy, cs, nrct
+        real*8 cross_section, nonrandom_collision_time
 
         ! INITIALIZE SIMULATION
         
@@ -39,9 +39,8 @@
 
         do while (current_energy .lt. end_energy)
             cs = cross_section(current_energy)
-            v = velocity(current_energy)
             nrct = nonrandom_collision_time(current_energy)
-          print *, current_energy, cross_section(current_energy), nrct
+          print *, current_energy, cs, nrct
           current_energy = current_energy + denergy
         enddo
 

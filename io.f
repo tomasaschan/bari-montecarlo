@@ -7,7 +7,7 @@
         character*30 fname
 
         if (rnk .eq. 0) then
-          read *, NRunsreal, tfin, dt, e0, eI, fname, x0, x1
+          read *, NRunsreal, tfin, dt, e0, fname, x0, x1, eI
           Nruns = int(NRunsreal)
 
           write(*,920), float(Nruns), tfin

@@ -12,13 +12,13 @@ install: $(RUNNER)
 
 all: $(BINARIES)
 
-histogram: physics.o single_particle.o random.o handle_collision_cs.o io.o mpi.o interpolation.o 
+histogram: physics.o single_particle.o random.o handle_collision.o io.o mpi.o interpolation.o 
 
 run: $(RUNNER)
 	mpirun -np 1 $(CMD)
 
 runp: $(RUNNER)
-	mpirun -np 8 $(CMD)
+	mpirun -np 8 $(CMD); alert
 	grep $(OUTFILE) -e \#
 
 runvp: $(RUNNER)
