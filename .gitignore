@@ -4,8 +4,12 @@
 
 # Binaries
 *.o
-runner
+histogram
 
 # Output files
 *.out
 *.png
+outdata/*
+
+# Scratching
+scratch/*
