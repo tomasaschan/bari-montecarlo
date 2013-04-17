@@ -1,21 +1,66 @@
-FC = mpif77
-FFLAGS=-O0 -g -Wall
-BINARIES = $(RUNNER) cstest
-RUNNER = histogram
+FC = mpif90
+FWARNINGS = -Wall -Warray-bounds 
+FOPTS = -ffixed-line-length-none -fbounds-check 
+FFLAGS=-O0 -g $(FWARNINGS) $(FOPTS)
+VALGRINDOPTS = --suppressions=/usr/share/openmpi/openmpi-valgrind.supp --gen-suppressions=all
+
 tstamp = $(shell date '+%Y-%m-%d-%H-%M-%S')
 OUTDIR = outdata
+
+RUNNER = run_simulation
+TESTER = 
+
+BINARIES = $(RUNNER) $(TESTER)
+
+INFILE = input.in
 OUTFILE = $(OUTDIR)/$(RUNNER)_$(tstamp).out
-CMD = ./$(RUNNER) < $(RUNNER).in > $(OUTFILE)
-VALGRINDOPTS = --suppressions=/usr/share/openmpi/openmpi-valgrind.supp --gen-suppressions=all
+CMDOUT =  > $(OUTFILE)
+CMD = ./$(RUNNER) < $(INFILE) $(CMDOUT)
+
+TESTOUT = > $(TESTER).out
+TESTCMD = ./$(TESTER) < $(INFILE)
+
+MODULES1 = physics.o single_particle.o random.o histogram.o
+MODULES2 = io.o mpi.o interpolation.o 
+MODULES = $(MODULES1) $(MODULES2)
+
+# Compile commands
 
 install: $(RUNNER)
 
-all: $(BINARIES)
+all: $(MODULES) $(BINARIES)
 
-histogram: physics.o single_particle.o random.o handle_collision.o io.o mpi.o interpolation.o 
+$(RUNNER): $(MODULES) runner.f
+	$(FC) $(FFLAGS) -o $@ $^
+
+# Dependencies
+
+interpolation.o: io.o 
+#mpi.o
+
+io.o: mpi.o
+
+
+random.o: mpi.o
+
+single_particle.o: physics.o histogram.o
+
+handle_collision.o: random.o
+
+physics.o: random.o interpolation.o
+
+# Miscellaneous helpers
+
+clean:
+	rm -f *~ .fuse_* *.o *.mod $(BINARIES) *.out
+
+list:
+	clear
+	ls -l --sort=extension --group-directories-first --color=auto
 
 run: $(RUNNER)
 	mpirun -np 1 $(CMD)
+	grep $(OUTFILE) -e \#
 
 runp: $(RUNNER)
 	mpirun -np 8 $(CMD)
@@ -24,32 +69,15 @@ runp: $(RUNNER)
 runvp: $(RUNNER)
 	mpirun -np $(NPROC) $(CMD)
 	
-clean: cleanout
-	rm -f *~ *.o .fuse_* $(BINARIES)
-
-cleanout:
-	rm -f *.out
-
 memcheck: $(RUNNER)
 	valgrind $(VALGRINDOPTS) ./$(RUNNER) < $(RUNNER).in
 
 memcheckp: $(RUNNER)
 	mpirun -np 2 valgrind $(VALGRINDOPTS) $(CMD)
 
-plot:
-	./histogram.sh "$(OUTDIR)/`ls outdata | tail -n 1`" "$(OUTDIR)/cstest.out"
+plotlast:
+	./plot.sh "$(OUTDIR)/`ls outdata | tail -n 1`"
 	
 showplots:
 	eog *.png 2> /dev/null &
 
-list:
-	clear
-	ls -l --sort=extension --group-directories-first --color=auto
-
-cstest: io.o interpolation.o mpi.o physics.o random.o
-
-runt: cstest
-	mpirun -np 1 ./cstest < $(RUNNER).in > $(OUTDIR)/cstest.out
-
-memcheckt: cstest
-	valgrind $(VALGRINDOPTS) ./cstest < $(RUNNER).in

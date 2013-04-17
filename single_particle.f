@@ -1,25 +1,31 @@
-      subroutine onepart(e0, tfin, dt, Nbins, Ntimes, bins, eI)
-        implicit none
-          ! The file handle to write output to
-          !integer fhandle
+      module single_particle
+        use iso_fortran_env, only : REAL64
+
+      contains
+
+        subroutine onepart(e0, dt, Ntimes, np, eI)
+          use physics
+          use histogram
+        
+          implicit none
 
           ! How many particles we allocate space for
-          integer Nspace, Nbins, Ntimes
+          integer Nspace, Ntimes, np
           parameter(Nspace=100)
           
           ! Some parameters for simulation
-          integer i, head, colls_dt, bins(Nbins, Ntimes), idx, tidx
-          real*8 e0, t, tfin, dt, dtp, eI
-          real*8 es(Nspace), tcs(Nspace)
+          integer i, head, colls_dt, idx, tidx
+          real(REAL64) e0, t, dt, dtp, eI(np)
+          real(REAL64) es(Nspace), tcs(Nspace)
          
-C         Initialize simulation
+          ! Initialize simulation
           t = 0
           tidx = 1
           head = 1
-          call init_arrays(Nspace, es, e0, tcs)
-          
-C         Run simulation of one electron
-          do while (t .LE. tfin)
+          call init_arrays(Nspace, np, es, e0, tcs)
+
+          ! Run simulation of one electron
+          do while (tidx .le. Ntimes)
             colls_dt = 0
             
             do i=1, head
@@ -27,7 +33,7 @@ C         Run simulation of one electron
               do while(tcs(i) .LE. dtp .AND. tcs(i) .GT. 0)
                 dtp = dtp - tcs(i)
                 colls_dt = colls_dt + 1
-                call handle_collision(Nspace,es,tcs,i,head+colls_dt,eI)
+                call handle_collision(Nspace,es,tcs,i,head+colls_dt,np,eI(np))
               enddo
               
               tcs(i) = tcs(i) - dtp
@@ -38,29 +44,31 @@ C         Run simulation of one electron
 
             do i=1, head
               idx = ceiling(es(i)*(Nbins-1)/e0)
-              bins(idx, tidx) = bins(idx, tidx) + 1 
+              bins(idx, tidx) = bins(idx, tidx) + 1
             enddo
             tidx = tidx + 1
 
           enddo
  
           do i=1, head
-            idx = int(es(i)*e0/float(Nbins))
+            idx = ceiling(es(i)*(Nbins-1)/e0)
             bins(idx, Ntimes) = bins(idx, Ntimes) + 1
           enddo
-      end
+        end subroutine onepart
 
-      subroutine init_arrays(N, es, e0, tcs)
-        implicit none
-        
-        integer N,i
-        real*8 es(N), tcs(N), e0, collision_time
-        
-        es(1) = e0
-        tcs(1) = collision_time(e0)
-        do i=2, N-1
-          es(i) = 0
-          tcs(i) = 0
-        enddo
-      end
+        subroutine init_arrays(N, np, es, e0, tcs)
+          use physics
+  
+          implicit none
+          
+          integer N,np
+          real(REAL64) es(N), tcs(N), e0
+
+          es = 0.0
+          tcs = 0.0
+          
+          es(1) = e0
+          tcs(1) = collision_time(e0, np)
+        end subroutine init_arrays
+      end module single_particle
 

@@ -1,116 +1,69 @@
-      program histogram
-        implicit none
-        include 'mpif.h'
-      
-900   format(3(E15.8))
-910   format('# ', a, ' took ', Es10.3, ' s')
-!940   format('# Number of events: ', I0, ' ', I0, ' ', f5.2)
+      module histogram
+        use iso_fortran_env, only : REAL64
 
-        ! DECLARE VARIABLES
+        integer, parameter :: Nbins = int(1e3)
+        integer, allocatable :: bins(:,:)
 
-        ! Parameters for simulation (indata)
-        integer Nruns
-        real*8 tfin, dt, eI, e0
-        
-        ! MPI related stuff
-        integer rnk, nproc, ierr
-      
-        ! Data for collisional cross-sections
-        integer Ninterp
-        parameter(Ninterp=int(1e5))
-        real*8 cs_data(Ninterp,2)
-        character*30 fname
-        real*8 x0, x1
-        common /cs/ cs_data, x0, x1
-        
-        ! Bins for summarizing the histogram
-        integer i, it, Nbins, Ntimes
-        parameter(Nbins=int(1e3))
- !       integer binsize
-        integer, allocatable :: bins(:,:), binsum(:,:), totsum(:)
-        real*8, allocatable :: norm_factor(:)
+      contains
 
-        ! Variables for output
-        real*8 t, e, p
+        subroutine init_bins(Ntimes)
+          implicit none
 
-        ! Timing of the simulation
-        double precision allt, startt, endt
+          integer Ntimes
+          
+          allocate(bins(Nbins,Ntimes))
 
-        ! INITIALIZE SIMULATION
-        
-        ! MPI framework
-        call init_mpi(rnk, nproc)
-        ! Read data from stdin and share to all processes
-        call read_program_input(Nruns, tfin, dt, e0, eI, 
-     +                          fname, x0, x1, rnk)
-        ! Interpolate cross-section data, and share with all processes
-        call get_interpolation(fname,Ninterp,cs_data,x0,x1,rnk)
+          bins = 0
+        end subroutine init_bins
 
-        Ntimes = int(ceiling(tfin/dt))
-        allocate(bins(Nbins, Ntimes))
-        allocate(binsum(Nbins, Ntimes))
+        subroutine calculate_totals(Ntimes, e0)
+          use mpi
 
-        ! Seed pseudo-random number generator
-        call seed_rand()
+          implicit none
 
-        call MPI_Barrier(MPI_Comm_world, ierr)
+          integer Ntimes, it, i
 
-        allt = MPI_Wtime()
+          integer, allocatable :: binsum(:,:), totsum(:)
+          real(REAL64), allocatable :: norm_factor(:)
 
-        bins = 0
-        
-        ! RUN SIMULATION
-
-        startt = MPI_Wtime()
-        do i=1, Nruns/nproc
-          call onepart(e0, tfin, dt, Nbins, Ntimes, bins, eI)
-        enddo
-        
-        if (rnk.EQ.0) then
-          do i = 1, Nruns-nproc*Nruns/nproc
-            call onepart(e0, tfin, dt, Nbins, Ntimes, bins, eI)
-          enddo
-        endif
-
-!        call MPI_Barrier(MPI_Comm_world, ierr)
-        if (rnk.EQ.0) then
-          endt = MPI_Wtime()
-          write(*,910) 'Simulation', endt-startt
-        endif
-
-        ! REDUCE RESULTS TO HISTOGRAM
-
-        call MPI_Reduce(bins,binsum,Nbins*Ntimes,MPI_INTEGER,MPI_SUM,
-     +                0, MPI_COMM_WORLD, ierr)
-     
-        if (rnk.EQ.0) then
-          allocate(totsum(Ntimes))
-          totsum = sum(binsum,dim=1)
-          norm_factor = 100/float(totsum)
+          ! variables for output
+          real(REAL64) t, e, p, dt, e0
 
 
-          do it=1, Ntimes
-            do i=1, Nbins
-              t = dt*it
-              e = i*e0/float(Nbins)
-              p = float(binsum(i,it))*norm_factor(it)
-              write(*,900) t, e, p
-            enddo
-            write (*,*) " "
-          enddo
+          ! reduce results to histogram
+            ! master thread: allocate space for reduction
+            if (rnk.eq.0) then
+              allocate(binsum(Nbins, Ntimes))
+              allocate(totsum(Ntimes))
+              allocate(norm_factor(Ntimes))
+            end if
+            call reduce_bins(bins,binsum,Nbins,Ntimes)
+          !
 
-          deallocate(totsum)
-        endif
+          ! master thread: print histogram data to stdout
+            if (rnk.eq.0) then
+              totsum = sum(binsum,dim=1)
+              norm_factor = 100/real(totsum,REAL64)
 
-!        call MPI_Barrier(MPI_Comm_world, ierr)
-        if (rnk.EQ.0) then
-          write(*,910), 'Everyting', MPI_Wtime() - allt
-        endif
+              dt = bins(2,1)-bins(1,1)
 
-        deallocate(bins)
-        deallocate(binsum)
+              do it=1, Ntimes
+                do i=1, Nbins
+                  t = dt*it
+                  e = i*e0/real(Nbins,REAL64)
+                  p = real(binsum(i,it),REAL64)!*norm_factor(it)
+                  write(*,'(3(E15.8))') t,e,p
+                end do
+                write (*,*) " "
+              end do
 
-        ! TERMINATE MPI
-        
-        call finalize_mpi()
-      end 
+              deallocate(totsum)
+              deallocate(norm_factor)
+              deallocate(binsum)
+            end if
+          !
+        end subroutine calculate_totals
+
+
+
+      end module
