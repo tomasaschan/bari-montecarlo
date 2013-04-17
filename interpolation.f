@@ -1,64 +1,118 @@
-      subroutine interpolate_2d_data(nrd, dta, nri, interp, x0, x1)
-        implicit none
+      module interpolation
+        use io
+        use iso_fortran_env, only : REAL64
 
-        ! row counts and pointers for both series
-        integer nrd, nri, id, ii
-        ! matrix holding x (first column) and y (second column)
-        real*8 :: dta(nrd,2), interp(nri,2)
-        ! boundaries for the desired interval and interpolation step size
-        real*8 x0, x1, dx
-        ! some intermediate quantities, used in calculations
-        real*8 k, xi, xd(nrd), yd(nrd)
+        integer nri
+        parameter(nri=int(1e5))
 
-        xd = dta(:,1)
-        yd = dta(:,2)
+        real(REAL64), allocatable :: interp(:,:)
+        real(REAL64), allocatable :: interp_min(:), interp_max(:)
 
-        ! set both pointers to start of ranges
-        id = 1
-        ii = 1
-        ! calculate step size
-        dx = (x1-x0)/float(nri-1)
+      contains
 
-        !print *, "# dx: ", dx
+        subroutine init_interpolation(e0)
+          !use mpi, only : rnk
+          
+          implicit none
 
-        ! set first point of interpolation interval
-        interp(1,1) = x0
-        
-        if (x0 .gt. xd(2)) then
-          ! desired x0 is after second dta point.
-          ! step the dta range so x0 is in the current interval
-          print *, "# stepping dta range"
+          integer i
+          double precision, intent(in) :: e0
+          double precision de, emax, emin
 
-          do while(xd(id) .lt. x0)
-            id = id+1
-          enddo
-          ! the loop above steps one step too far
-          id = id - 1
-        endif
+          allocate(interp(nri,NDataFiles+1))
+          allocate(interp_min(NDataFiles))
+          allocate(interp_max(NDataFiles))
 
-        xi = x0 + (ii-1)*dx
-        k=0
+          interp_min = e0raw
+          interp_max = e1raw
 
-        do while(xd(id) .lt. x1 .and. id .lt. nrd)
-          k = (yd(id+1)-yd(id))/(xd(id+1)-xd(id))
+          emax = max(maxval(interp_max),e0)
+          emin = min(minval(interp_min),0.0)
+          de = (emax-emin)/(float(nri)-1)
 
-          do while (xi .lt. xd(id+1) .and. ii .le. nri)
-            interp(ii, 1) = xi
-            interp(ii, 2) = yd(id) + k*(xi-xd(id))
-            ii = ii+1
-            xi = xi+dx
-          enddo
+          do i=1,nri
+            interp(i,1) = emin+(i-1)*de
+          end do
+        end subroutine init_interpolation
 
-          id = id+1
-!          print *, "# ", ii, x0, dta(id-1,1), xi, dta(id,1), x1
-        enddo
+        subroutine interpolate(inti, e0, e1)
+          implicit none
 
-        ! if there is some part of the interval left, extrapolate to x1
-        do while (xi .le. x1 .and. ii .le. nri)
-          ! use the same k as in the last interval
-          interp(ii, 1) = xi
-          interp(ii, 2) = yd(id) + k*(xi-xd(id))
-          xi = x0 + ii*dx
-          ii = ii+1
-        enddo
-      end
+          ! pointers for both series
+          integer inti, id, ii
+          ! boundaries for the desired interval
+          double precision e0, e1
+          ! shortcuts to the interpolation and data ranges
+          double precision ei(nri), ed(nrd), csd(nrd)
+          ! slope of interpolation
+          double precision k
+
+
+          ei = interp(:,1)
+          ed = raw(:,1)
+          csd = raw(:,2)
+
+          ! set both pointers to start of ranges
+          id = 1
+          ii = 1
+
+          ! step data range to starting point
+          if (e0 .gt. ed(2)) then
+            ! desired e0 is after second data point.
+            ! step the data range so x0 is in the current interval
+            
+            do while(ed(id) .lt. e0)
+              id = id+1
+            end do
+            ! the loop above steps one step too far
+            id = id - 1
+          endif
+
+          ! step interpolation range to starting point
+          if (e0 .gt. ei(2)) then
+            ! desired x0 is after second interpolation point
+            ! step the interpolation range so x0 is in the first interval
+            ! set cs = 0 for all e < e0
+
+            do while (ei(ii) .lt. e0)
+              ii = ii + 1
+              interp(ii,inti+1) = 0
+            end do
+            ! the loop above steps one step too far
+            ii = ii - 1
+          end if
+
+          k=0
+
+          ! interpolate until end of data range
+          do while(ed(id) .lt. e1 .and. id .lt. nrd)
+            k = (csd(id+1)-csd(id))/(ed(id+1)-ed(id)) 
+
+            do while(ei(ii) .lt. ed(id+1) .and. ii .lt. nri)
+              interp(ii,inti+1) = csd(id) + k*(ei(ii)-ed(id))
+              ii = ii+1
+            end do
+
+            id = id + 1
+          end do
+
+          ! if a larger range is desired, extrapolate
+          if (ii .lt. nri) then
+            do while (ei(ii) .le. e1 .and. ii .lt. nri)
+              ! we re-use k from the last interval
+              interp(ii, inti+1) = csd(id) + k*(ei(ii)-ed(id))
+              ii = ii + 1
+            end do
+          end if
+
+          ! if some other interpolation range is larger, pad with 0
+          do while (ii .lt. nri)
+            interp(ii,inti+1) = 0
+            ii = ii + 1
+          end do
+
+          deallocate(raw)
+        end subroutine interpolate
+
+      end module interpolation
+

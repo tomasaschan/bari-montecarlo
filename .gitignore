@@ -4,7 +4,8 @@
 
 # Binaries
 *.o
-histogram
+*.mod
+run_simulation
 
 # Output files
 *.out
