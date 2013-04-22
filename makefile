@@ -8,7 +8,7 @@ tstamp = $(shell date '+%Y-%m-%d-%H-%M-%S')
 OUTDIR = outdata
 
 RUNNER = run_simulation
-TESTER = 
+TESTER = quicktest
 
 BINARIES = $(RUNNER) $(TESTER)
 
