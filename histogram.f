@@ -1,7 +1,7 @@
       module histogram
-        use iso_fortran_env, only : REAL64
+        use precision
 
-        integer, parameter :: Nbins = int(1e3)
+        integer, parameter :: Nbins = int(1e4)
         integer, allocatable :: bins(:,:)
 
       contains
@@ -16,18 +16,18 @@
           bins = 0
         end subroutine init_bins
 
-        subroutine calculate_totals(Ntimes, e0)
-          use mpi
+        subroutine calculate_totals(Ntimes, dt, tfin, e0)
+          use mpi, only : rnk, reduce_bins
 
           implicit none
 
           integer Ntimes, it, i
 
           integer, allocatable :: binsum(:,:), totsum(:)
-          real(REAL64), allocatable :: norm_factor(:)
+          real(rkind), allocatable :: norm_factor(:)
 
           ! variables for output
-          real(REAL64) t, e, p, dt, e0
+          real(rkind) t, e, p, dt, e0, tfin
 
 
           ! reduce results to histogram
@@ -43,15 +43,15 @@
           ! master thread: print histogram data to stdout
             if (rnk.eq.0) then
               totsum = sum(binsum,dim=1)
-              norm_factor = 100/real(totsum,REAL64)
-
-              dt = bins(2,1)-bins(1,1)
+              ! divide by the total number of particles to get probability in [0,1]
+              ! multiply by 100 to get probability in %
+              norm_factor = 100/real(totsum,rkind)
 
               do it=1, Ntimes
                 do i=1, Nbins
-                  t = dt*it
-                  e = i*e0/real(Nbins,REAL64)
-                  p = real(binsum(i,it),REAL64)!*norm_factor(it)
+                  t = min(dt*it, tfin)
+                  e = i*e0/real(Nbins,rkind)
+                  p = real(binsum(i,it),rkind)*norm_factor(it)
                   write(*,'(3(E15.8))') t,e,p
                 end do
                 write (*,*) " "

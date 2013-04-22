@@ -1,7 +1,7 @@
 FC = mpif90
 FWARNINGS = -Wall -Warray-bounds 
 FOPTS = -ffixed-line-length-none -fbounds-check 
-FFLAGS=-O0 -g $(FWARNINGS) $(FOPTS)
+FFLAGS=-O3 -g $(FWARNINGS) $(FOPTS)
 VALGRINDOPTS = --suppressions=/usr/share/openmpi/openmpi-valgrind.supp --gen-suppressions=all
 
 tstamp = $(shell date '+%Y-%m-%d-%H-%M-%S')
@@ -20,8 +20,8 @@ CMD = ./$(RUNNER) < $(INFILE) $(CMDOUT)
 TESTOUT = > $(TESTER).out
 TESTCMD = ./$(TESTER) < $(INFILE)
 
-MODULES1 = physics.o single_particle.o random.o histogram.o
-MODULES2 = io.o mpi.o interpolation.o 
+MODULES1 = precision.o mpi.o io.o random.o interpolation.o physics.o
+MODULES2 = histogram.o single_particle.o
 MODULES = $(MODULES1) $(MODULES2)
 
 # Compile commands
@@ -35,24 +35,20 @@ $(RUNNER): $(MODULES) runner.f
 
 # Dependencies
 
-interpolation.o: io.o 
-#mpi.o
+mpi.o, histogram.o, io.o, random.o, interpolation.o, physics.o, single_particle.o: precision.o
 
-io.o: mpi.o
+$(RUNNER), interpolation.o: io.o 
 
-
-random.o: mpi.o
+io.o, random.o: mpi.o
 
 single_particle.o: physics.o histogram.o
-
-handle_collision.o: random.o
-
-physics.o: random.o interpolation.o
 
 # Miscellaneous helpers
 
 clean:
 	rm -f *~ .fuse_* *.o *.mod $(BINARIES) *.out
+removealloutput:
+	rm -f $(OUTDIR)/*
 
 list:
 	clear
@@ -63,21 +59,33 @@ run: $(RUNNER)
 	grep $(OUTFILE) -e \#
 
 runp: $(RUNNER)
-	mpirun -np 8 $(CMD)
+	mpirun -np 4 $(CMD)
 	grep $(OUTFILE) -e \#
 
 runvp: $(RUNNER)
 	mpirun -np $(NPROC) $(CMD)
-	
+
+debug: $(RUNNER)
+	mpirun -np 2 xterm -e gdb $(CMD) &
+
 memcheck: $(RUNNER)
-	valgrind $(VALGRINDOPTS) ./$(RUNNER) < $(RUNNER).in
+	valgrind $(VALGRINDOPTS) $(CMD)
 
 memcheckp: $(RUNNER)
 	mpirun -np 2 valgrind $(VALGRINDOPTS) $(CMD)
 
-plotlast:
-	./plot.sh "$(OUTDIR)/`ls outdata | tail -n 1`"
+plot:
+	gnuplot plot.gpt
+
+plotfences:
+	./plot-fences.sh "$(OUTDIR)/`ls outdata | tail -n 1`"
 	
 showplots:
 	eog *.png 2> /dev/null &
+
+showmsgs:
+	grep "$(OUTDIR)/`ls $(OUTDIR) | tail -n 1`" -e \#
+
+
+quicktest: 
 

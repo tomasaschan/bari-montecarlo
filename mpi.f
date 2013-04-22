@@ -1,5 +1,5 @@
       module mpi
-        use iso_fortran_env, only : REAL64
+        use precision, only : rkind, mpi_rkind, lkind, mpi_lkind
 
         integer rnk, nproc, ierr, comm
 
@@ -28,14 +28,13 @@
           call MPI_Barrier(comm, ierr)
         end subroutine barrier
 
-        subroutine share_data(Nruns, tfin, dt, e0, eI, nri, ni, interp, interp_min, interp_max)
+        subroutine share_data(Nruns, tfin, dt, e0, p, eI, nri, ni, interp, interp_min, interp_max)
           implicit none
           include 'mpif.h'
 
-          integer Nruns
-          integer nri, ni
-          real(REAL64) tfin, dt, e0
-          real(REAL64), allocatable ::  eI(:), interp(:,:), interp_min(:), interp_max(:)
+          integer(lkind) Nruns, nri, ni
+          real(rkind) tfin, dt, e0, p
+          real(rkind), allocatable ::  eI(:), interp(:,:), interp_min(:), interp_max(:)
 
           integer mpi_struct_t, intextent
           integer offsets(2), blockcounts(2), oldtypes(2)
@@ -43,15 +42,15 @@
           ! create struct type for sending more data at once
             type struct_t
               sequence
-              integer Nruns, ni
-              real(REAL64) tfin, dt, e0
+              integer(lkind) Nruns, ni
+              real(rkind) tfin, dt, e0, p
             end type struct_t
 
             type(struct_t) allvars
 
-            call MPI_Type_extent(MPI_Integer, intextent, ierr)
+            call MPI_Type_extent(mpi_lkind, intextent, ierr)
 
-            oldtypes = (/ MPI_Integer, MPI_Real8 /)
+            oldtypes = (/ mpi_lkind, mpi_rkind /)
             blockcounts = (/ 2, 4 /)
             offsets = (/ 0, 2*intextent /)
 
@@ -67,6 +66,7 @@
             allvars%tfin = tfin
             allvars%dt = dt
             allvars%e0 = e0
+            allvars%p = p
           endif
 
           ! send struct
@@ -80,8 +80,9 @@
             tfin = allvars%tfin
             dt = allvars%dt
             e0 = allvars%e0
+            p = allvars%p
 
-            ! allocate variables that depend on NDataFiles
+            ! allocate variables that depend on NCollProc
             allocate(eI(ni))
             allocate(interp(nri,ni+1))
             allocate(interp_min(ni))
@@ -90,10 +91,10 @@
           end if
 
           ! send dynamically allocated data
-          call MPI_Bcast(interp, nri*(ni+1), MPI_Real8, 0, comm, ierr)
-          call MPI_Bcast(interp_min, ni, MPI_Real8, 0, comm, ierr)
-          call MPI_Bcast(interp_max, ni, MPI_Real8, 0, comm, ierr)
-          call MPI_Bcast(eI, ni, MPI_Real8, 0, comm, ierr)
+          call MPI_Bcast(interp, nri*(ni+1), mpi_rkind, 0, comm, ierr)
+          call MPI_Bcast(interp_min, ni, mpi_rkind, 0, comm, ierr)
+          call MPI_Bcast(interp_max, ni, mpi_rkind, 0, comm, ierr)
+          call MPI_Bcast(eI, ni, mpi_rkind, 0, comm, ierr)
 
           !print *, "# rnk/interp_min/interp_max", rnk, interp_min, interp_max
 

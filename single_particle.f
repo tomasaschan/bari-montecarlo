@@ -1,74 +1,108 @@
       module single_particle
-        use iso_fortran_env, only : REAL64
+        use precision
+        
+        ! Some parameters for simulation
+        integer head, colls_dt, tidx
+        integer Nspace
+        parameter(Nspace=100)
+        real(rkind) es(Nspace), tcs(Nspace), e0
 
       contains
 
-        subroutine onepart(e0, dt, Ntimes, np, eI)
-          use physics
-          use histogram
+        subroutine onepart(dt, tfin, Ntimes)
+          !use physics
+          use histogram, only : bins, Nbins
         
           implicit none
 
-          ! How many particles we allocate space for
-          integer Nspace, Ntimes, np
-          parameter(Nspace=100)
-          
-          ! Some parameters for simulation
-          integer i, head, colls_dt, idx, tidx
-          real(REAL64) e0, t, dt, dtp, eI(np)
-          real(REAL64) es(Nspace), tcs(Nspace)
+          real(rkind) t, dt, tfin
          
+          ! How many particles we allocate space for
+
+          integer Ntimes
+
           ! Initialize simulation
-          t = 0
+          t = 0.0D0
           tidx = 1
           head = 1
-          call init_arrays(Nspace, np, es, e0, tcs)
+          call init_arrays(Nspace, es, e0, tcs)
 
           ! Run simulation of one electron
-          do while (tidx .le. Ntimes)
-            colls_dt = 0
-            
-            do i=1, head
-              dtp = dt
-              do while(tcs(i) .LE. dtp .AND. tcs(i) .GT. 0)
-                dtp = dtp - tcs(i)
-                colls_dt = colls_dt + 1
-                call handle_collision(Nspace,es,tcs,i,head+colls_dt,np,eI(np))
-              enddo
-              
-              tcs(i) = tcs(i) - dtp
-            enddo
-          
-            head = head + colls_dt
+          do while (tidx .le. Ntimes .and. t .le. tfin)
+            ! reset collision counter
+            colls_dt = 0            
+            ! propagate for dt
+            call propagate(dt, head)
+            ! collect snapshot histogram
+            call collect(tidx, head)
+            ! update current time and index
             t = t+dt
-
-            do i=1, head
-              idx = ceiling(es(i)*(Nbins-1)/e0)
-              bins(idx, tidx) = bins(idx, tidx) + 1
-            enddo
             tidx = tidx + 1
-
           enddo
- 
-          do i=1, head
-            idx = ceiling(es(i)*(Nbins-1)/e0)
-            bins(idx, Ntimes) = bins(idx, Ntimes) + 1
-          enddo
+            
+          ! if tfin/dt is not even, propagate to tfin
+          if (t-dt .lt. tfin) then
+            call propagate(tfin-(t-dt), head)
+            ! collect final value
+            call collect(tidx-1, head)
+          end if
         end subroutine onepart
 
-        subroutine init_arrays(N, np, es, e0, tcs)
+        subroutine init_arrays(N, es, e0, tcs)
           use physics
   
           implicit none
           
-          integer N,np
-          real(REAL64) es(N), tcs(N), e0
+          integer N
+          real(rkind) es(N), tcs(N), e0
 
-          es = 0.0
-          tcs = 0.0
+          es = 0.0D0
+          tcs = 0.0D0
           
           es(1) = e0
-          tcs(1) = collision_time(e0, np)
+          tcs(1) = collision_time(e0)
         end subroutine init_arrays
+
+        subroutine propagate(dt, head)
+          use physics, only : eI, handle_collision
+
+          implicit none
+
+          real(rkind) dt, dtp
+          integer i, head
+
+          do i=1, head
+            dtp = dt
+            do while(tcs(i) .le. dtp .and. tcs(i) .gt. 0)
+              dtp = dtp - tcs(i)
+              colls_dt = colls_dt + 1
+              call handle_collision(Nspace,es,tcs,i,head+colls_dt)
+            enddo
+            
+            tcs(i) = tcs(i) - dtp
+          enddo
+
+          ! update head to include new collisions
+          head = head + colls_dt
+
+        end subroutine propagate
+
+        subroutine collect(tidx, head)
+          use histogram, only : bins, Nbins
+
+          implicit none
+
+          integer i, idx, tidx, head
+
+          do i=1, head
+            idx = int(es(i)*real(Nbins,rkind)/e0)
+            if (idx .eq. 0) then
+              idx = 1
+            end if
+            bins(idx, tidx) = bins(idx, tidx) + 1
+          enddo
+
+        end subroutine collect
+
       end module single_particle
 

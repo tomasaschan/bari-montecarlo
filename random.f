@@ -1,12 +1,13 @@
       module random
-
+        use precision
+        use, intrinsic :: iso_c_binding, only : C_INT128_T
       contains
 
         function random_real()
           ! Abstraction over rand(), in case I find a better option
 
           implicit none
-          double precision random_real
+          real(rkind) random_real
 
           random_real = rand()
         end function random_real
@@ -17,7 +18,7 @@
 
           implicit none
 
-          double precision random_von_Neumann, r, E
+          real(rkind) random_von_Neumann, r, E
           parameter(E=13)
 
           r = random_real()*300
@@ -33,11 +34,11 @@
           implicit none
           
           integer t
-          integer*16 bt
+          integer(C_INT128_T) bt
           
           ! Get a high-precision time value from MPI, and shift it up so
           ! that all significant digits are part of the integer truncation
-          bt = int(wtime()*1e7, 16)
+          bt = int(wtime()*1e7, C_INT128_T)
           ! Truncate on the /left/ end of the big number, to get something
           ! that varies quickly with time (i.e. varies as 1e-7 seconds)
           ! Convert it to integer*4 so we can seed rand() with it

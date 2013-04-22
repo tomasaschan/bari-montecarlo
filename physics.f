@@ -1,49 +1,55 @@
       module physics
-        use iso_fortran_env, only : REAL64
+        use precision
         use interpolation
+
+        real(rkind) :: p
+        real(rkind), allocatable :: eI(:)
+        integer(lkind) :: NCollProc
 
       contains
 
-        function collision_time(eV, np)
+        function collision_time(eV)
           ! This function simply uses the nonrandom version, and then adds
           ! a random factor of -log(rand()) 
           use random
 
           implicit none
             ! function input parameters
-            real(REAL64) eV
-            integer np
-            ! parameter: air molecular density
-            real(REAL64) n
-            parameter(n=3e21)
+            real(rkind) eV
             ! return value and intermediates
-            real(REAL64) collision_time, r, ct
+            real(rkind) collision_time, r, ct
 
             r = random_real()
-            ct = nonrandom_collision_time(eV, np)
+            ct = nonrandom_collision_time(eV)
             collision_time = -log(r)*ct
         end
         
-        function nonrandom_collision_time(eV, np)
+        function nonrandom_collision_time(eV)
           ! Calculates the collision time for a particle of energy eV,
           ! given a particle density of the medium with which it collides
           ! of n m^(-3).
           
           implicit none
             ! function input parameters
-            real(REAL64) n, eV
-            integer np
-            parameter(n=3e21)
+            real(rkind) eV
             ! function return value, and helper functions
-            real(REAL64) nonrandom_collision_time
+            real(rkind) nonrandom_collision_time
             ! intermediate quantities
-            real(REAL64) alpha, v, cs
+            real(rkind) alpha, v, cs
 
-            np=np
+            ! parameter: air molecular density
+            real(rkind) :: n
+            real(rkind), parameter   :: T = 300.0
+            real(rkind), parameter   :: kB = 1.3806488e-23
+            real(rkind), parameter :: Torr2Pa = 101325/760
+            n = p * Torr2Pa / (kB*T)
+            
+            ! TODO: introduce multiple collision processes
+
 
             v = velocity(eV)
             cs = cross_section(eV,1)
-            alpha = n*velocity(eV)*cross_section(eV, 1)
+            alpha = n*v*cs
             nonrandom_collision_time = 1.0 / alpha
         end
 
@@ -54,11 +60,11 @@
           implicit none
 
           ! Input argument and return value
-          real(REAL64) eV, cross_section
+          real(rkind) eV, cross_section
           integer process
 
           ! Intermediates
-          real(REAL64) dx
+          real(rkind) dx
           integer idx
 
           !print *, "# rnk/interp_min/interp_max", rnk, interp_min(process), interp_max(process), eV, eV .gt. interp_max(process), eV .lt. interp_min(process)
@@ -96,7 +102,7 @@
             endif
         end
 
-        subroutine handle_collision(N, es, tcs, idx1, idx2, np, eI)
+        subroutine handle_collision(N, es, tcs, idx1, idx2)
           ! Redistribute energy between the primary and secondary electrons,
           ! and update the collision times for both.
           
@@ -104,9 +110,9 @@
           ! implementation of the rigid sphere approximation.
 
           implicit none
-            integer N, idx1, idx2, np
-            real(REAL64) es(N), tcs(N)
-            real(REAL64) eI(np), ea, esec
+            integer N, idx1, idx2
+            real(rkind) es(N), tcs(N)
+            real(rkind) ea, esec
 
             ! Calculate the available energy based on ionization energy
             ea = es(idx1) - eI(1)
@@ -117,12 +123,12 @@
             !do while (esec.gt.ea)
             !  esec = secondary_energy(ea)
             !enddo
-            es(idx2) = esec
-            es(idx1) = ea-es(idx2)
+            es(idx2) = max(esec,0.0D0)
+            es(idx1) = max(ea-es(idx2),0.0D0)
 
             ! Calculate new collision times for both electrons
-            tcs(idx1) = max(collision_time(es(idx1), np), 0.0)
-            tcs(idx2) = max(collision_time(es(idx2), np), 0.0)
+            tcs(idx1) = max(collision_time(es(idx1)), 0.0D0)
+            tcs(idx2) = max(collision_time(es(idx2)), 0.0D0)
         end
         
         function secondary_energy(ea)
@@ -130,9 +136,9 @@
 
           implicit none
 
-          real(REAL64), intent(in) :: ea
-          real(REAL64) secondary_energy
-          real(REAL64) r, E
+          real(rkind), intent(in) :: ea
+          real(rkind) secondary_energy
+          real(rkind) r, E
           parameter(E=13)
 
           r = random_real()
@@ -145,8 +151,8 @@
 
           implicit none
 
-          real(REAL64), intent(in) :: ea
-          real(REAL64) secondary_energy_simple
+          real(rkind), intent(in) :: ea
+          real(rkind) secondary_energy_simple
 
           secondary_energy_simple = ea*random_real()
         end
@@ -156,7 +162,7 @@
           ! energy eV
           
           implicit none
-            real(REAL64) eV, velocity
+            real(rkind) eV, velocity
             real me, e
             parameter(me=9.11E-31,e = 1.602176E-19)
 
@@ -172,11 +178,16 @@
           ! |v| = sqrt(v(1)^2+v(2)^2+v(3)^2)
           
           implicit none
-            real(REAL64) v(3), energy
+            real(rkind) v(3), energy
             real me, e
             parameter(me=9.11E-31,e = 1.602176E-19)
             
             energy = .5*me*(v(1)*v(1) + v(2)*v(2) + v(3)*v(3)) / e
-        end
+        end function energy
 
+        subroutine clean_up_physics()
+          implicit none
+
+          deallocate(eI)
+        end subroutine clean_up_physics
       end module physics

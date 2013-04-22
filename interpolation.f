@@ -1,23 +1,23 @@
       module interpolation
-        use io
-        use iso_fortran_env, only : REAL64
+        use precision
 
-        integer nri
+        integer(lkind) nri
         parameter(nri=int(1e5))
 
-        real(REAL64), allocatable :: interp(:,:)
-        real(REAL64), allocatable :: interp_min(:), interp_max(:)
+        real(rkind), allocatable :: interp(:,:)
+        real(rkind), allocatable :: interp_min(:), interp_max(:)
 
       contains
 
         subroutine init_interpolation(e0)
+          use io, only : NDataFiles, nrd, e0raw, e1raw
           !use mpi, only : rnk
           
           implicit none
 
-          integer i
-          double precision, intent(in) :: e0
-          double precision de, emax, emin
+          integer(lkind) i
+          real(rkind), intent(in) :: e0
+          real(rkind) de, emax, emin
 
           allocate(interp(nri,NDataFiles+1))
           allocate(interp_min(NDataFiles))
@@ -36,17 +36,18 @@
         end subroutine init_interpolation
 
         subroutine interpolate(inti, e0, e1)
+          use io, only : nrd, raw
+
           implicit none
 
           ! pointers for both series
-          integer inti, id, ii
+          integer(lkind) inti, id, ii
           ! boundaries for the desired interval
-          double precision e0, e1
+          real(rkind) e0, e1
           ! shortcuts to the interpolation and data ranges
-          double precision ei(nri), ed(nrd), csd(nrd)
+          real(rkind) ei(nri), ed(nrd), csd(nrd)
           ! slope of interpolation
-          double precision k
-
+          real(rkind) k
 
           ei = interp(:,1)
           ed = raw(:,1)
@@ -113,6 +114,14 @@
 
           deallocate(raw)
         end subroutine interpolate
+
+        subroutine clean_up_interp()
+          implicit none
+
+          deallocate(interp)
+          deallocate(interp_min)
+          deallocate(interp_max)
+        end subroutine clean_up_interp
 
       end module interpolation
 

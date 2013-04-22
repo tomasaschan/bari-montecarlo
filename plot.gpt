@@ -1,0 +1,21 @@
+reset
+set terminal pngcairo enhanced
+set output 'eedf.png'
+
+#set logscale y
+set logscale xy
+
+
+set xlabel 'Energy [eV]'
+set ylabel 'Probability [ppm]'
+
+set xrange [1:`head -n 4 input.in | tail -n 1`*1.1]
+
+tfin = "`head -n 2 input.in | tail -n 1`"
+datafile = "outdata/`ls outdata | tail -n 1`"
+awkcmd = 'awk ''( $1=='.tfin.' ) { print $2,$3; }'''
+cmd = '<'.awkcmd.' '.datafile
+
+#print cmd
+
+plot cmd u 1:($2*1e4) w lines notitle lc rgb "blue"

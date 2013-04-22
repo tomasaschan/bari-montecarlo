@@ -1,24 +1,24 @@
       module io
-        use iso_fortran_env, only : REAL64
+        use precision
 
         integer nrd, NDataFiles
         
         character(len=30), allocatable :: fnames(:)
-        real(REAL64), allocatable :: raw(:,:)
+        real(rkind), allocatable :: raw(:,:)
+        real(rkind), allocatable :: e0raw(:), e1raw(:)
 
-        real(REAL64), allocatable :: e0raw(:), e1raw(:)
       contains
 
-      subroutine read_program_input(Nruns, tfin, dt, e0, eI)
+      subroutine read_program_input(Nruns, tfin, dt, e0, p, eI)
         use mpi
 
         implicit none
 
-        integer Nruns
-        real(REAL64) tfin, dt, e0, NRunsreal
-        real(REAL64), allocatable :: eI(:)
+        integer(lkind) Nruns
+        real(rkind) tfin, dt, e0, p, NRunsreal
+        real(rkind), allocatable :: eI(:)
 
-        read *, NRunsreal, tfin, dt, e0, NDataFiles
+        read *, NRunsreal, tfin, dt, e0, p, NDataFiles
         
         allocate(fnames(NDataFiles))
         allocate(e0raw(NDataFiles))
@@ -29,21 +29,21 @@
         read *, e0raw, e1raw, eI
         Nruns = int(NRunsreal)
 
-        write(*,920), float(Nruns), tfin
+        print *, "# ", NRunsreal, Nruns, huge(lkind), log10(real(huge(lkind),rkind))
+
+        write(*,920), float(Nruns), tfin, dt
         write(*,960), e0, eI          
 
-920   format('# Runs: ', Es8.1E2, ', t_end: ', Es8.1)
+920   format('# Runs: ', Es8.1E2, ', tfin: ', Es8.1, ', dt: ', Es8.1)
 960   format('# e0: ', F8.1, ', eI: ', 3(F8.4))
       end subroutine read_program_input
 
-      subroutine read_interpolation_data(fname, raw, nrd)
+      subroutine read_interpolation_data(fname)
         implicit none
 
-        integer nrd
         integer f, row, col
         parameter(f=15)
         character*(*) fname
-        real(REAL64), allocatable :: raw(:,:)
 
         ! Print diagnostic message about file name
         write(*,930) fname
@@ -64,6 +64,15 @@
 
 930   format("# Reading cross-section data from ", A)
       end subroutine read_interpolation_data
+
+      subroutine clean_up_io()
+        implicit none
+
+        deallocate(e0raw)
+        deallocate(e1raw)
+        deallocate(fnames)
+
+      end subroutine clean_up_io
 
       function lines_in_file(fname)
         implicit none
