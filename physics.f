@@ -1,18 +1,25 @@
       module physics
         use precision
+        private
         !use interpolation
 
         ! nitrogen gas pressure and number density
-        real(rkind) :: p, n
+        real(rkind), public :: p, n
         ! number of interpolation points and collision processes
-        integer(lkind) :: Ncs, NCollProc
+        integer(lkind), public :: Ncs, NCollProc
         ! cross section interpolations and boundary values
         ! the lower boundary is also the energy loss
-        real(rkind), allocatable :: cs(:,:), cs_min(:), cs_max(:)
+        real(rkind), allocatable, public :: cs(:,:), cs_min(:), cs_max(:)
         ! number of electrons created in processes
-        integer(ikind), allocatable :: products(:)
+        integer(ikind), allocatable, public :: products(:)
         ! total collision frequency; constant through simulation
-        real(rkind) total_collision_frequency
+        real(rkind), public :: total_collision_frequency
+
+        public :: init_physics
+        public :: cross_section
+        public :: collision_time
+        public :: collision_frequency
+        public :: handle_collision
 
       contains
 

@@ -1,8 +1,13 @@
       module histogram
         use precision
+        private
 
-        integer, parameter :: Nbins = int(1e3)
-        integer, allocatable :: bins(:,:)
+        integer, parameter, public    :: Nbins = int(1e3)
+        integer, allocatable, public  :: bins(:,:)
+
+        public :: init_bins
+        public :: calculate_totals
+        public :: cleanup_histogram
 
       contains
 
@@ -12,7 +17,6 @@
           integer Ntimes
           
           allocate(bins(Nbins,Ntimes))
-
           bins = 0
         end subroutine init_bins
 
@@ -31,39 +35,40 @@
 
 
           ! reduce results to histogram
-            ! master thread: allocate space for reduction
-            if (rnk.eq.0) then
-              allocate(binsum(Nbins, Ntimes))
-              allocate(totsum(Ntimes))
-              allocate(norm_factor(Ntimes))
-            end if
-            call reduce_bins(bins,binsum,Nbins,Ntimes)
-          !
+          ! master thread: allocate space for reduction
+          if (rnk.eq.0) then
+            allocate(binsum(Nbins, Ntimes))
+            allocate(totsum(Ntimes))
+            allocate(norm_factor(Ntimes))
+          end if
+          call reduce_bins(bins,binsum,Nbins,Ntimes)
 
           ! master thread: print histogram data to stdout
-            if (rnk.eq.0) then
-              totsum = sum(binsum,dim=1)
-              ! divide by the total number of particles to get probability in [0,1]
-              ! multiply by 100 to get probability in %
-              norm_factor = 100/real(totsum,rkind)
+          if (rnk.eq.0) then
+            totsum = sum(binsum,dim=1)
+            ! divide by the total number of particles to get probability in [0,1]
+            ! multiply by 100 to get probability in %
+            norm_factor = 100/real(totsum,rkind)
 
-              do it=1, Ntimes
-                do i=1, Nbins
-                  t = min(dt*it, tfin)
-                  e = i*e0/real(Nbins,rkind)
-                  p = real(binsum(i,it),rkind)*norm_factor(it)
-                  write(*,'(3(E15.8))') t,e,p
-                end do
-                write (*,*) " "
+            do it=1, Ntimes
+              do i=1, Nbins
+                t = min(dt*it, tfin)
+                e = i*e0/real(Nbins,rkind)
+                p = real(binsum(i,it),rkind)*norm_factor(it)
+                write(*,'(3(E15.8))') t,e,p
               end do
+              write (*,*) " "
+            end do
 
-              deallocate(totsum)
-              deallocate(norm_factor)
-              deallocate(binsum)
-            end if
-          !
+            deallocate(totsum)
+            deallocate(norm_factor)
+            deallocate(binsum)
+          end if
         end subroutine calculate_totals
 
-
+        subroutine cleanup_histogram()
+          implicit none
+          deallocate(bins)
+        end subroutine
 
       end module
