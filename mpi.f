@@ -1,5 +1,5 @@
       module mpi
-        use precision, only : rkind, mpi_rkind, lkind, mpi_lkind
+        use precision, only : rkind, mpi_rkind, lkind, mpi_lkind, ikind, mpi_ikind
 
         integer rnk, nproc, ierr, comm
 
@@ -23,11 +23,12 @@
           call MPI_Barrier(comm, ierr)
         end subroutine barrier
 
-        subroutine share_data(Nruns, tfin, dt, e0, p, nri, ni, interp, interp_min, interp_max)
+        subroutine share_data(Nruns, tfin, dt, e0, p, nri, ni, interp, interp_min, interp_max, products)
           implicit none
           include 'mpif.h'
 
           integer(lkind) Nruns, nri, ni
+          integer(ikind), allocatable :: products(:)
           real(rkind) tfin, dt, e0, p
           real(rkind), allocatable ::  interp(:,:), interp_min(:), interp_max(:)
 
@@ -81,6 +82,7 @@
             allocate(interp(nri,ni+1))
             allocate(interp_min(ni))
             allocate(interp_max(ni))
+            allocate(products(ni))
 
           end if
 
@@ -88,6 +90,7 @@
           call MPI_Bcast(interp, nri*(ni+1), mpi_rkind, 0, comm, ierr)
           call MPI_Bcast(interp_min, ni, mpi_rkind, 0, comm, ierr)
           call MPI_Bcast(interp_max, ni, mpi_rkind, 0, comm, ierr)
+          call MPI_Bcast(products, ni, mpi_ikind, 0, comm, ierr)
 
           !print *, "# rnk/interp_min/interp_max", rnk, interp_min, interp_max
 

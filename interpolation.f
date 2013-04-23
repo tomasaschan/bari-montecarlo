@@ -1,6 +1,6 @@
       module interpolation
         use precision
-        use physics, only : cs, cs_min, cs_max, NCollProc
+        use physics, only : cs, cs_min, cs_max, Ncs, NCollProc, products
 
         integer(lkind) nri
         parameter(nri=int(1e5))
@@ -8,14 +8,21 @@
       contains
 
         subroutine init_interpolation()
-          use io, only : NDataFiles, nrd, e0raw, e1raw
+          use io, only : NDataFiles, nrd, e0raw, e1raw, productsraw
           !use mpi, only : rnk
           
           implicit none
 
-          allocate(cs(nri,NDataFiles+1))
-          allocate(cs_min(NDataFiles))
-          allocate(cs_max(NDataFiles))
+          Ncs = nri
+          NCollProc = NDataFiles
+          allocate(cs(Ncs,NCollProc+1))
+          allocate(cs_min(NCollProc))
+          allocate(cs_max(NCollProc))
+          allocate(products(NCollProc))
+          
+          cs_min = e0raw
+          cs_max = e1raw
+          products  = productsraw
 
         end subroutine init_interpolation
 
@@ -36,8 +43,6 @@
           ed = raw(1:nrd(ip),1,ip)
           csd = raw(1:nrd(ip),2,ip)
 
-          cs_min = e0raw
-          cs_max = e1raw
           e0 = cs_min(ip)
           e1 = cs_max(ip)
 

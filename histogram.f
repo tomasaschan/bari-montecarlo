@@ -1,7 +1,7 @@
       module histogram
         use precision
 
-        integer, parameter :: Nbins = int(1e4)
+        integer, parameter :: Nbins = int(1e3)
         integer, allocatable :: bins(:,:)
 
       contains

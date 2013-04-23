@@ -6,11 +6,11 @@
         real(rkind) :: p, n
         ! number of interpolation points and collision processes
         integer(lkind) :: Ncs, NCollProc
-        ! cross section interpolations
-        real(rkind), allocatable :: cs(:,:)
-        ! boundary values for the interpolations
+        ! cross section interpolations and boundary values
         ! the lower boundary is also the energy loss
-        real(rkind), allocatable :: cs_min(:), cs_max(:)
+        real(rkind), allocatable :: cs(:,:), cs_min(:), cs_max(:)
+        ! number of electrons created in processes
+        integer(ikind), allocatable :: products(:)
         ! total collision frequency; constant through simulation
         real(rkind) total_collision_frequency
 
@@ -19,7 +19,7 @@
         subroutine init_physics()
           implicit none
 
-          integer(lkind) ie, ip
+          integer(lkind) ie
 
           real(rkind) :: cfreqs(Ncs)
           real(rkind), parameter   :: T = 300.0
@@ -30,12 +30,10 @@
           ! calculate nitrogen number density from gas pressure
           n = p * Torr2Pa / (kB*T)
 
-          ! calculate total collision frequency
-          do ie = 1, Ncs
-            cfreqs(ie) = velocity(cs(ie,1))*n*sum(cs(ie,2:))
-            print *, cs(ie,1), cfreqs(ie)
-          end do
+          ! calculate total collision frequency for each energy
+          cfreqs = (/ (velocity(cs(ie,1))*n*sum(cs(ie,2:)), ie=1, Ncs) /)
 
+          ! add the null collisions, by taking the maximum
           total_collision_frequency = maxval(cfreqs)
         end subroutine init_physics
 
@@ -78,34 +76,61 @@
           endif
         end function cross_section
 
-        subroutine handle_collision(N, es, tcs, idx1, idx2)
-          ! Redistribute energy between the primary and secondary electrons,
-          ! and update the collision times for both.
-          
-          ! This version is based on energy only - it is the simplest possible
-          ! implementation of the rigid sphere approximation.
+        subroutine handle_collision(N, es, tcs, idx, head, newp_dt)
+          use random, only : random_real
+          ! select a collision process, 
 
           implicit none
-          integer N, idx1, idx2
+          ! in arguments
+          integer N, idx, head, newp_dt
           real(rkind) es(N), tcs(N)
-          real(rkind) ea, esec
+          ! other variables
+          real(rkind) r, cfsum
+          integer ip
 
-          ! Calculate the available energy based on ionization energy
-          ea = es(idx1) - cs_min(1) ! change to (p)
+          ! select a collision process
+          r = random_real()
+          cfsum = 0.0
+          ip = 0
+          selectproc: do 
+            ip = ip+1
+            if (ip .gt. NCollProc) then 
+              ! null collision!
+              ! just give the particle a new collision time and exit
+              !print *, "# null collision at process ", ip
+              tcs(idx) = collision_time()
+              return
+            end if
 
-          ! Give a random fraction of the available energy to the secondary
-          esec = secondary_energy(ea)
-          ! Make sure we conserve energy
-          !do while (esec.gt.ea)
-          !  esec = secondary_energy(ea)
-          !enddo
-          !es(idx2) = max(esec,0.0D0)
-          !es(idx1) = max(ea-es(idx2),0.0D0)
+            cfsum = cfsum + collision_frequency(es(idx), ip) / total_collision_frequency
 
-          ! Calculate new collision times for both electrons
-          !tcs(idx1) = max(collision_time(es(idx1)), 0.0D0)
-          !tcs(idx2) = max(collision_time(es(idx2)), 0.0D0)
-        end
+            if (cfsum .gt. r) then
+              ! this is the process we want
+              exit selectproc
+            end if
+          end do selectproc
+
+          ! test for null collision
+          
+          ! real collision
+
+          ! subtract energy loss from available energy
+          es(idx) = es(idx) - cs_min(ip)
+
+          ! will a new electron be created?
+          if (products(ip) .eq. 1) then
+            ! create a new electron which shares the available energy
+            newp_dt = newp_dt + 1
+            es(head+newp_dt) = secondary_energy(es(idx))
+            ! we must also subtract this energy from the primary's
+            es(idx) = es(idx) - es(head+newp_dt)
+            ! set collision time for the secondary
+            tcs(head+newp_dt) = collision_time()
+          end if
+
+          ! update collision time
+          tcs(idx) = collision_time()
+        end subroutine handle_collision
 
         function secondary_energy(ea)
           use random
@@ -114,9 +139,8 @@
           real(rkind) r, ea, secondary_energy, E
           parameter(E=13)
           r = random_real()
-          secondary_energy = E*tan(atan(ea/E)*r)
-          
-        end
+          secondary_energy = E*tan(atan(ea/E)*r)    
+        end function secondary_energy
 
         function velocity(eV)
           ! Calculates the velocity in m/s for an electron with kinetic
@@ -128,7 +152,7 @@
           parameter(me=9.11E-31,e = 1.602176E-19)
 
           velocity = sqrt(2*eV*e/me)
-        end
+        end function velocity
 
         function energy(v)
           ! Calculates the kinetic energy in eV for an electron which 

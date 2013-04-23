@@ -49,7 +49,7 @@
         end subroutine onepart
 
         subroutine init_arrays(N, es, e0, tcs)
-          use physics
+          use physics, only : collision_time
   
           implicit none
           
@@ -60,7 +60,7 @@
           tcs = 0.0D0
           
           es(1) = e0
-          tcs(1) = collision_time(e0)
+          tcs(1) = collision_time()
         end subroutine init_arrays
 
         subroutine propagate(dt, head)
@@ -75,8 +75,7 @@
             dtp = dt
             do while(tcs(i) .le. dtp .and. tcs(i) .gt. 0)
               dtp = dtp - tcs(i)
-              colls_dt = colls_dt + 1
-              call handle_collision(Nspace,es,tcs,i,head+colls_dt)
+              call handle_collision(Nspace,es,tcs,i,head,colls_dt)
             enddo
             
             tcs(i) = tcs(i) - dtp

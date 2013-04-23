@@ -6,7 +6,8 @@
         character(len=25), allocatable :: fnames(:)
         integer, allocatable :: nrd(:)
         real(rkind), allocatable :: raw(:,:,:)
-        real(rkind), allocatable :: e0raw(:), e1raw(:), productsraw(:)
+        real(rkind), allocatable :: e0raw(:), e1raw(:)
+        integer(ikind), allocatable :: productsraw(:)
 
       contains
 

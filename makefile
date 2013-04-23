@@ -10,7 +10,7 @@ OUTDIR = outdata
 RUNNER = run_simulation
 TESTER = quicktest
 
-BINARIES = $(RUNNER) $(TESTER)
+BINARIES = $(RUNNER) $(TESTER) indatatester
 
 INFILE = input.in
 OUTFILE = $(OUTDIR)/$(RUNNER)_$(tstamp).out
