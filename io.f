@@ -1,69 +1,72 @@
       module io
         use precision
 
-        integer nrd, NDataFiles
+        integer NDataFiles
         
-        character(len=30), allocatable :: fnames(:)
-        real(rkind), allocatable :: raw(:,:)
-        real(rkind), allocatable :: e0raw(:), e1raw(:)
+        character(len=25), allocatable :: fnames(:)
+        integer, allocatable :: nrd(:)
+        real(rkind), allocatable :: raw(:,:,:)
+        real(rkind), allocatable :: e0raw(:), e1raw(:), productsraw(:)
 
       contains
 
-      subroutine read_program_input(Nruns, tfin, dt, e0, p, eI)
+      subroutine read_program_input(Nruns, tfin, dt, e0, p)
         use mpi
 
         implicit none
 
+        integer f, row, col, i
+        parameter(f=15)
         integer(lkind) Nruns
         real(rkind) tfin, dt, e0, p, NRunsreal
-        real(rkind), allocatable :: eI(:)
 
         read *, NRunsreal, tfin, dt, e0, p, NDataFiles
         
         allocate(fnames(NDataFiles))
+        allocate(nrd(NDataFiles))
         allocate(e0raw(NDataFiles))
         allocate(e1raw(NDataFiles))
-        allocate(eI(NDataFiles))
+        allocate(productsraw(NDataFiles))
 
         read *, fnames
-        read *, e0raw, e1raw, eI
         Nruns = int(NRunsreal)
 
-        print *, "# ", NRunsreal, Nruns, huge(lkind), log10(real(huge(lkind),rkind))
+        if (NRunsreal .gt. huge(lkind)) then
+          print *, "# WARNING: overflow in input N - lower the number of simulated particles!"
+        end if
 
-        write(*,920), float(Nruns), tfin, dt
-        write(*,960), e0, eI          
+        write(*,920), e0, tfin, p
+        write(*,960), float(Nruns), dt, nproc
 
-920   format('# Runs: ', Es8.1E2, ', tfin: ', Es8.1, ', dt: ', Es8.1)
-960   format('# e0: ', F8.1, ', eI: ', 3(F8.4))
-      end subroutine read_program_input
-
-      subroutine read_interpolation_data(fname)
-        implicit none
-
-        integer f, row, col
-        parameter(f=15)
-        character*(*) fname
-
-        ! Print diagnostic message about file name
-        write(*,930) fname
-
-        ! Count lines in file and allocate space for raw data
-        nrd = lines_in_file(trim(fname))
-        allocate(raw(nrd,2))
-
-        ! Read the data into variable
-        open(f, file=trim(fname), status='old')
-        read(f,*) ((raw(row,col),col=1,2),row=1,nrd)
+        ! first pass over data files: count line numbers
+        do i=1, NDataFiles
+          nrd(i) = lines_in_file(trim(fnames(i)))-1
+        end do
+        ! allocate space for raw data
+        allocate(raw(maxval(nrd),2,NDataFiles))
+        ! second pass over data files: read data into memory
+        do i=1, NDataFiles
+          ! print diagnostic message about file name
+          write(*,930) fnames(i)
+          ! open data file
+          open(f, file=trim(fnames(i)), status='old')
+          ! read metadata
+          read(unit=f,fmt=*) e0raw(i), e1raw(i), productsraw(i)
+          ! read cross-sections
+          read(unit=f,fmt=*) ((raw(row,col,i),col=1,2),row=1,nrd(i))
+          ! Close the file so the handle can be reused
+          close(f)
+        end do
 
         ! Rescale the data to SI units - expecting cross-sections in cm^2
-        raw(:,2) = raw(:,2)*1.0e-4 
+        raw(:,2,:) = raw(:,2,:)*1.0e-4 
 
-        ! Close the file so the handle can be reused
-        close(f)
 
+
+920   format('# e0: ', Es8.1, ', tfin: ', Es8.1, ', p: ', Es8.1)
 930   format("# Reading cross-section data from ", A)
-      end subroutine read_interpolation_data
+960   format('# Simulated particles: ', Es8.1, ', time step: ', Es8.1, ", number of processes: ", I0)
+      end subroutine read_program_input
 
       subroutine clean_up_io()
         implicit none
@@ -71,6 +74,9 @@
         deallocate(e0raw)
         deallocate(e1raw)
         deallocate(fnames)
+        deallocate(nrd)
+        deallocate(productsraw)
+        deallocate(raw)
 
       end subroutine clean_up_io
 

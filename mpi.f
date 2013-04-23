@@ -14,11 +14,6 @@
           call MPI_Comm_rank(comm, rnk, ierr)
           call MPI_Comm_size(comm, nproc, ierr)
 
-          if (rnk .eq. 0) then
-            write(*,930), nproc
-          end if
-
-930   format('# Number of processes: ', I0)
         end subroutine init_mpi
 
         subroutine barrier()
@@ -28,13 +23,13 @@
           call MPI_Barrier(comm, ierr)
         end subroutine barrier
 
-        subroutine share_data(Nruns, tfin, dt, e0, p, eI, nri, ni, interp, interp_min, interp_max)
+        subroutine share_data(Nruns, tfin, dt, e0, p, nri, ni, interp, interp_min, interp_max)
           implicit none
           include 'mpif.h'
 
           integer(lkind) Nruns, nri, ni
           real(rkind) tfin, dt, e0, p
-          real(rkind), allocatable ::  eI(:), interp(:,:), interp_min(:), interp_max(:)
+          real(rkind), allocatable ::  interp(:,:), interp_min(:), interp_max(:)
 
           integer mpi_struct_t, intextent
           integer offsets(2), blockcounts(2), oldtypes(2)
@@ -83,7 +78,6 @@
             p = allvars%p
 
             ! allocate variables that depend on NCollProc
-            allocate(eI(ni))
             allocate(interp(nri,ni+1))
             allocate(interp_min(ni))
             allocate(interp_max(ni))
@@ -94,7 +88,6 @@
           call MPI_Bcast(interp, nri*(ni+1), mpi_rkind, 0, comm, ierr)
           call MPI_Bcast(interp_min, ni, mpi_rkind, 0, comm, ierr)
           call MPI_Bcast(interp_max, ni, mpi_rkind, 0, comm, ierr)
-          call MPI_Bcast(eI, ni, mpi_rkind, 0, comm, ierr)
 
           !print *, "# rnk/interp_min/interp_max", rnk, interp_min, interp_max
 

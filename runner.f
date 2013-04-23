@@ -1,10 +1,10 @@
-      program interptest
+      program run_simulation
         use precision
 
         use mpi, only : rnk, nproc, init_mpi, barrier, share_data, finalize_mpi, wtime
-        use io, only : raw, e0raw, e1raw, fnames, NDataFiles, read_program_input, read_interpolation_data, clean_up_io
-        use physics, only : p, eI, NCollProc, clean_up_physics
-        use interpolation, only : interp, nri, interp_min, interp_max, init_interpolation, interpolate, clean_up_interp
+        use io, only : raw, e0raw, e1raw, fnames, NDataFiles, read_program_input, clean_up_io
+        use physics, only : p
+        use interpolation, only : cs, nri, cs_min, cs_max, NCollProc, init_interpolation, interpolate, clean_up_interp
         use random, only : seed_rand_0
         use single_particle, only : onepart, e0
         use histogram
@@ -38,26 +38,23 @@
           ! master thread: read indata and interpolate cross-sections
             if (rnk.eq.0) then
               ! get input from stdin        
-              call read_program_input(Nruns, tfin, dt, e0, p, eI)
+              call read_program_input(Nruns, tfin, dt, e0, p)
               ! initialize e vector of interpolation
-              call init_interpolation(e0)
-
-              ! interplolate each data series
-              do i=1,NDataFiles
-                call read_interpolation_data(fnames(i))
-                call interpolate(i, e0raw(i), e1raw(i))
-              end do
-
-              call clean_up_io()
+              call init_interpolation()
 
               NCollProc = NDataFiles
 
+              do i=1,NCollProc
+                call interpolate(i)
+              end do
+              ! clean up allocated memory
+              call clean_up_io()
             end if
           !
 
           ! share indata and interpolations between all processes
           
-            call share_data(Nruns,tfin,dt,e0,p,eI,nri,NCollProc,interp,interp_min,interp_max)
+            call share_data(Nruns,tfin,dt,e0,p,nri,NCollProc,cs,cs_min,cs_max)
             !print *, "# interp_min/max: ", interp_min, interp_max
             !
           !
@@ -139,8 +136,7 @@
         ! CLEAN UP
           !  deallocate(bins)
           call clean_up_interp()
-          call clean_up_physics()
 
           call finalize_mpi()
         !
-      end program interptest
+      end program run_simulation

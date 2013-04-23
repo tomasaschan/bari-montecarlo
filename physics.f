@@ -1,10 +1,17 @@
       module physics
         use precision
-        use interpolation
+        !use interpolation
 
+        ! nitrogen gas pressure
         real(rkind) :: p
-        real(rkind), allocatable :: eI(:)
+        ! number of collision processes
         integer(lkind) :: NCollProc
+        ! cross section interpolations
+        real(rkind), allocatable :: cs(:,:)
+        ! boundary values for the interpolations
+        ! the lower boundary is also the energy loss
+        real(rkind), allocatable :: cs_min(:), cs_max(:)
+
 
       contains
 
@@ -35,7 +42,7 @@
             ! function return value, and helper functions
             real(rkind) nonrandom_collision_time
             ! intermediate quantities
-            real(rkind) alpha, v, cs
+            real(rkind) alpha, v, sigm
 
             ! parameter: air molecular density
             real(rkind) :: n
@@ -48,13 +55,14 @@
 
 
             v = velocity(eV)
-            cs = cross_section(eV,1)
-            alpha = n*v*cs
+            sigm = cross_section(eV,1)
+            alpha = n*v*sigm
+
             nonrandom_collision_time = 1.0 / alpha
         end
 
         function cross_section(eV, process)
-          !use interpolation, only : interp, interp_min, interp_max
+          !use interpolation, only : cs, cs_min, cs_max
           use mpi, only : rnk
 
           implicit none
@@ -67,15 +75,14 @@
           real(rkind) dx
           integer idx
 
-          !print *, "# rnk/interp_min/interp_max", rnk, interp_min(process), interp_max(process), eV, eV .gt. interp_max(process), eV .lt. interp_min(process)
+          !print *, "# rnk/cs_min/cs_max", rnk, cs_min(process), cs_max(process), eV, eV .gt. cs_max(process), eV .lt. cs_min(process)
 
-
-          if (eV .lt. interp_min(process) .or. eV .gt. interp_max(process)) then
+          if (eV .lt. cs_min(process) .or. eV .gt. cs_max(process)) then
             cross_section = 0
           else
-            dx = interp(2,1)-interp(1,1)
-            idx = 1 + int((eV-interp(1,1))/dx)
-            cross_section = interp(idx,1+process)
+            dx = cs(2,1)-cs(1,1)
+            idx = 1 + int((eV-cs(1,1))/dx)
+            cross_section = cs(idx,1+process)
           endif
         end
         
@@ -115,7 +122,7 @@
             real(rkind) ea, esec
 
             ! Calculate the available energy based on ionization energy
-            ea = es(idx1) - eI(1)
+            ea = es(idx1) - cs_min(1) ! change to (p)
 
             ! Give a random fraction of the available energy to the secondary
             esec = secondary_energy(ea)
@@ -184,10 +191,4 @@
             
             energy = .5*me*(v(1)*v(1) + v(2)*v(2) + v(3)*v(3)) / e
         end function energy
-
-        subroutine clean_up_physics()
-          implicit none
-
-          deallocate(eI)
-        end subroutine clean_up_physics
       end module physics

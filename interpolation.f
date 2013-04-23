@@ -1,57 +1,55 @@
       module interpolation
         use precision
+        use physics, only : cs, cs_min, cs_max, NCollProc
 
         integer(lkind) nri
         parameter(nri=int(1e5))
 
-        real(rkind), allocatable :: interp(:,:)
-        real(rkind), allocatable :: interp_min(:), interp_max(:)
-
       contains
 
-        subroutine init_interpolation(e0)
+        subroutine init_interpolation()
           use io, only : NDataFiles, nrd, e0raw, e1raw
           !use mpi, only : rnk
           
           implicit none
 
-          integer(lkind) i
-          real(rkind), intent(in) :: e0
-          real(rkind) de, emax, emin
+          allocate(cs(nri,NDataFiles+1))
+          allocate(cs_min(NDataFiles))
+          allocate(cs_max(NDataFiles))
 
-          allocate(interp(nri,NDataFiles+1))
-          allocate(interp_min(NDataFiles))
-          allocate(interp_max(NDataFiles))
-
-          interp_min = e0raw
-          interp_max = e1raw
-
-          emax = max(maxval(interp_max),e0)
-          emin = min(minval(interp_min),0.0)
-          de = (emax-emin)/(float(nri)-1)
-
-          do i=1,nri
-            interp(i,1) = emin+(i-1)*de
-          end do
         end subroutine init_interpolation
 
-        subroutine interpolate(inti, e0, e1)
-          use io, only : nrd, raw
+        subroutine interpolate(ip)
+          use io, only : nrd, raw, e0raw, e1raw
 
           implicit none
 
           ! pointers for both series
-          integer(lkind) inti, id, ii
+          integer(lkind) ip, id, ii, i
           ! boundaries for the desired interval
           real(rkind) e0, e1
           ! shortcuts to the interpolation and data ranges
-          real(rkind) ei(nri), ed(nrd), csd(nrd)
-          ! slope of interpolation
-          real(rkind) k
+          real(rkind) ei(nri), ed(nrd(ip)), csd(nrd(ip))
+          ! variables for interpolation
+          real(rkind) k, de, emin, emax
 
-          ei = interp(:,1)
-          ed = raw(:,1)
-          csd = raw(:,2)
+          ed = raw(1:nrd(ip),1,ip)
+          csd = raw(1:nrd(ip),2,ip)
+
+          cs_min = e0raw
+          cs_max = e1raw
+          e0 = cs_min(ip)
+          e1 = cs_max(ip)
+
+          emax = max(maxval(cs_max),e0)
+          emin = min(minval(cs_min),0.0)
+          de = (emax-emin)/(float(nri)-1)
+
+          do i=1,nri
+            cs(i,1) = emin+(i-1)*de
+          end do
+
+          ei = cs(:,1)
 
           ! set both pointers to start of ranges
           id = 1
@@ -75,9 +73,9 @@
             ! step the interpolation range so x0 is in the first interval
             ! set cs = 0 for all e < e0
 
-            do while (ei(ii) .lt. e0)
+            do while (cs(ii,1) .lt. e0)
               ii = ii + 1
-              interp(ii,inti+1) = 0
+              cs(ii,ip+1) = 0
             end do
             ! the loop above steps one step too far
             ii = ii - 1
@@ -86,11 +84,12 @@
           k=0
 
           ! interpolate until end of data range
-          do while(ed(id) .lt. e1 .and. id .lt. nrd)
+          do while(ed(id) .lt. e1 .and. id .lt. nrd(ip))
             k = (csd(id+1)-csd(id))/(ed(id+1)-ed(id)) 
+            !print *, "# k:", ip, cs(ii,1), k, ed(id), csd(id), csd(id+1)
 
             do while(ei(ii) .lt. ed(id+1) .and. ii .lt. nri)
-              interp(ii,inti+1) = csd(id) + k*(ei(ii)-ed(id))
+              cs(ii,ip+1) = csd(id) + k*(ei(ii)-ed(id))
               ii = ii+1
             end do
 
@@ -98,29 +97,31 @@
           end do
 
           ! if a larger range is desired, extrapolate
-          if (ii .lt. nri) then
-            do while (ei(ii) .le. e1 .and. ii .lt. nri)
+          ! this loop syntax is funky to avoid off-by-one errors, because
+          ! fortran does not guarantee execution order of if conditions
+          extrapolate: do !while (ii .le. nri .and. ei(ii) .le. e1)
+            if (ii .gt. nri) exit extrapolate
+            if (ei(ii) .gt. e1) exit extrapolate
+
               ! we re-use k from the last interval
-              interp(ii, inti+1) = csd(id) + k*(ei(ii)-ed(id))
+              cs(ii, ip+1) = csd(id) + k*(ei(ii)-ed(id))
               ii = ii + 1
-            end do
-          end if
+          end do extrapolate
 
           ! if some other interpolation range is larger, pad with 0
           do while (ii .lt. nri)
-            interp(ii,inti+1) = 0
+            cs(ii+1,ip+1) = 0
             ii = ii + 1
           end do
 
-          deallocate(raw)
         end subroutine interpolate
 
         subroutine clean_up_interp()
           implicit none
 
-          deallocate(interp)
-          deallocate(interp_min)
-          deallocate(interp_max)
+          deallocate(cs)
+          deallocate(cs_min)
+          deallocate(cs_max)
         end subroutine clean_up_interp
 
       end module interpolation

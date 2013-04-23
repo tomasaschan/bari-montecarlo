@@ -64,7 +64,7 @@
         end subroutine init_arrays
 
         subroutine propagate(dt, head)
-          use physics, only : eI, handle_collision
+          use physics, only : handle_collision
 
           implicit none
 
