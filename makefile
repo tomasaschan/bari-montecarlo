@@ -47,6 +47,9 @@ physics.o: random.o
 
 quicktest: $(ALLMODULES)
 
+indatatester: $(ALLMODULES)
+
+
 # Miscellaneous helpers
 
 clean:
@@ -76,6 +79,9 @@ runt: $(TESTER)
 
 runtp: $(TESTER)
 	mpirun -np 2 $(TESTCMD)
+
+testind: indatatester
+	./indatatester < $(INFILE)
 
 # Debug
 
