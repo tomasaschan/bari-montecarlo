@@ -118,17 +118,6 @@
           
         end
 
-        function secondary_energy_simple(ea)
-          use random
-
-          implicit none
-
-          real(rkind), intent(in) :: ea
-          real(rkind) secondary_energy_simple
-
-          secondary_energy_simple = ea*random_real()
-        end
-
         function velocity(eV)
           ! Calculates the velocity in m/s for an electron with kinetic
           ! energy eV
