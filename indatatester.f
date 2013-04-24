@@ -6,7 +6,7 @@
 
         implicit none
         integer(lkind) Nruns, i
-        real(rkind) tfin, dt, e0, ct
+        real(rkind) tfin, dt, e0, Pnull!, !ct, Pnull
         real(rkind), allocatable :: css(:)
 
         call read_program_input(Nruns, tfin, dt, e0, p)
@@ -24,18 +24,22 @@
         print *, "# Cross sections:"
         print *, css
         print *, "# Probability of null collision:"
-        print *, 1-velocity(e0)*n*sum(css)/total_collision_frequency
+        Pnull = 1-velocity(e0)*n*sum(css)/total_collision_frequency
+        print *, Pnull
         print *, "# Total collision time:"
         print *, 1/total_collision_frequency
-        print *, "# A few sample collision times:"
-        do i=1,5
-          ct = collision_time()
-          if (ct .gt. tfin) then
-            print *, ct, "> tfin"
-          else
-            print *, ct, "< tfin"
-          end if
-        end do
+!         print *, "# A few sample collision times:"
+!         do i=1,5
+!           ct = collision_time()
+!           if (ct .gt. tfin) then
+!             print *, ct, "> tfin"
+!           else
+!             print *, ct, "< tfin"
+!           end if
+!         end do
+        print *, "# Probability of collision before tfin:"
+        print *, (1-exp(-total_collision_frequency*tfin))*(1-Pnull)
+
 
         call clean_up_interp()
 

@@ -23,7 +23,7 @@
         public :: collision_time
         public :: collision_frequency
         public :: handle_collision
-
+        public :: velocity
       contains
 
         subroutine init_physics()
