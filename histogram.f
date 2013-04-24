@@ -2,11 +2,17 @@
         use precision
         private
 
+        integer, allocatable :: binsum(:,:), totsum(:)
+        real(rkind), allocatable :: norm_factor(:)
+
         integer, parameter, public    :: Nbins = int(1e3)
+        integer, public :: Ntimes
+
         integer, allocatable, public  :: bins(:,:)
 
         public :: init_bins
         public :: calculate_totals
+        public :: print_eedf
         public :: cleanup_histogram
 
       contains
@@ -20,19 +26,9 @@
           bins = 0
         end subroutine init_bins
 
-        subroutine calculate_totals(Ntimes, dt, tfin, e0)
+        subroutine calculate_totals()
           use mpi, only : rnk, reduce_bins
-
           implicit none
-
-          integer Ntimes, it, i
-
-          integer, allocatable :: binsum(:,:), totsum(:)
-          real(rkind), allocatable :: norm_factor(:)
-
-          ! variables for output
-          real(rkind) t, e, p, dt, e0, tfin
-
 
           ! reduce results to histogram
           ! master thread: allocate space for reduction
@@ -41,15 +37,28 @@
             allocate(totsum(Ntimes))
             allocate(norm_factor(Ntimes))
           end if
+
+          ! calls mpi_reduce
           call reduce_bins(bins,binsum,Nbins,Ntimes)
 
-          ! master thread: print histogram data to stdout
+          ! master thread: calculate normalization factor
           if (rnk.eq.0) then
             totsum = sum(binsum,dim=1)
             ! divide by the total number of particles to get probability in [0,1]
             ! multiply by 100 to get probability in %
             norm_factor = 100/real(totsum,rkind)
+          end if
+        end subroutine calculate_totals
 
+        subroutine print_eedf(dt, tfin, e0)
+          use mpi, only : rnk
+          implicit none
+
+          integer it, i
+          ! variables for output
+          real(rkind) t, e, p, dt, e0, tfin
+
+          if (rnk.eq.0) then
             do it=1, Ntimes
               do i=1, Nbins
                 t = min(dt*it, tfin)
@@ -59,16 +68,20 @@
               end do
               write (*,*) " "
             end do
+          end if
+        end subroutine print_eedf
+
+        subroutine cleanup_histogram()
+          use mpi, only : rnk
+          implicit none
+          deallocate(bins)
+
+          if (rnk.eq.0) then
 
             deallocate(totsum)
             deallocate(norm_factor)
             deallocate(binsum)
           end if
-        end subroutine calculate_totals
-
-        subroutine cleanup_histogram()
-          implicit none
-          deallocate(bins)
         end subroutine
 
       end module
