@@ -2,26 +2,60 @@
         use precision
         private
 
-        real(rkind), allocatable, public :: k(:)
+        real(rkind), allocatable, public :: k(:,:)
+
+        public :: calculate_ratecoeffs_evolution
+        public :: print_ratecoeffs
+        public :: clean_up_ratecoeffs
       contains
 
-        subroutine calculate_ratecoeffs(e0, Ntimes)
+        subroutine calculate_ratecoeffs_evolution(e0)
+          use histogram, only : Nbins, Ntimes
+          use physics, only : NCollProc
+          implicit none
+
+          real(rkind), intent(in) :: e0
+          integer it
+
+          allocate(k(Ntimes,NCollProc))
+
+          do it=1,Ntimes
+            call calculate_ratecoeffs(e0,it)
+          end do
+
+        end subroutine calculate_ratecoeffs_evolution
+
+
+        subroutine print_ratecoeffs(dt, tfin)
+          use histogram, only : Ntimes
+          use physics, only : NCollProc
+          
+          implicit none
+
+          real(rkind), intent(in) :: dt, tfin
+          real(rkind) t
+          integer :: it
+
+          do it = 1, Ntimes
+            t = min(dt*it,tfin)
+            write(*,'(4(E15.8))'), t, k(it,:)
+          end do
+        end subroutine print_ratecoeffs
+
+        subroutine calculate_ratecoeffs(e0, it)
           use histogram, only : bins, Nbins
           use physics, only : n, NCollProc, cross_section, me
 
           implicit none
 
-          integer ip, ie, it
-          integer(lkind) Ntimes
-          real(rkind) I, e0, de, fa, fb
+          real(rkind), intent(in) :: e0
+          integer, intent(in) :: it
 
-          allocate(k(NCollProc))
+          integer ip, ie
+          real(rkind) I, de, fa, fb
 
 
           de = e0/real(Nbins,rkind)
-
-          ! only at last instant in time, for now
-          it = int(Ntimes)
 
           do ip=1,int(NCollProc)
             ! calculate rate coefficient for process i, and put it in k(i)
@@ -35,18 +69,15 @@
             end do
             
 
-            k(ip) = sqrt(2/me) * de**2/2 * I
+            k(it,ip) = sqrt(2/me) * (de*de)/2 * I
 
           end do
-
-          print *, k
-
         end subroutine calculate_ratecoeffs
-        
 
-        subroutine cleanup_ratecoeffs()
+
+        subroutine clean_up_ratecoeffs()
           implicit none
           deallocate(k)
-        end subroutine cleanup_ratecoeffs
+        end subroutine clean_up_ratecoeffs
 
       end module ratecoeffs

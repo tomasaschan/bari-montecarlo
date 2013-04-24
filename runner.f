@@ -8,6 +8,7 @@
         use random, only : seed_rand_0
         use single_particle, only : onepart, e0
         use histogram
+        use ratecoeffs, only : calculate_ratecoeffs_evolution, print_ratecoeffs, clean_up_ratecoeffs
 
         implicit none
 
@@ -16,7 +17,6 @@
         ! VARIABLE DECLARATIONS       
         integer(lkind) Nruns, i
         real(rkind) tfin, dt
-        integer :: Ntimes
         REAL(REAL64) :: t_init, t_sim, t_hist, t_all
         !
 
@@ -57,7 +57,7 @@
           call init_bins(Ntimes)
 
           ! initialize physics module
-          call init_physics
+          call init_physics()
 
           ! seed pseudo-random number generator
           call seed_rand_0()
@@ -95,7 +95,6 @@
             t_sim = wtime() - t_sim
             write(*,910), 'Simulation', t_sim
           end if
-        !
 
         ! POST PROCESSING
           ! stop postprocessing timer
@@ -104,8 +103,17 @@
             t_hist = wtime() - t_hist
           end if
 
-          ! summarize and output histogram
-          call calculate_totals(Ntimes, dt, tfin, e0)
+          ! summarize eedf
+          call calculate_totals()
+          ! print eedf
+          ! call print_eedf(dt, tfin, e0)
+
+          ! calculate rate coefficients
+          if (rnk.eq.0) then
+            call calculate_ratecoeffs_evolution(e0)
+            call print_ratecoeffs(dt, tfin)
+            call clean_up_ratecoeffs()
+          end if
 
           ! stop postprocessing and all timers
           call barrier()
@@ -117,8 +125,7 @@
           end if
 
         ! CLEAN UP
-          !  deallocate(bins)
+          !  deallocate(bins)g
           call clean_up_interp()
-
           call finalize_mpi()
       end program run_simulation
