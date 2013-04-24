@@ -15,6 +15,9 @@
         ! total collision frequency; constant through simulation
         real(rkind), public :: total_collision_frequency
 
+        real(rkind), public :: me, e
+        parameter(me=9.11E-31,e = 1.602176E-19)
+
         public :: init_physics
         public :: cross_section
         public :: collision_time
@@ -155,8 +158,6 @@
           
           implicit none
           real(rkind) eV, velocity
-          real me, e
-          parameter(me=9.11E-31,e = 1.602176E-19)
 
           velocity = sqrt(2*eV*e/me)
         end function velocity
@@ -171,8 +172,6 @@
           
           implicit none
           real(rkind) v(3), energy
-          real me, e
-          parameter(me=9.11E-31,e = 1.602176E-19)
           
           energy = .5*me*(v(1)*v(1) + v(2)*v(2) + v(3)*v(3)) / e
         end function energy
