@@ -96,8 +96,11 @@ memcheckp: $(RUNNER)
 
 # Plot and show
 
-plot:
-	gnuplot plot.gpt
+ploteedf:
+	gnuplot plot-eedf.gp
+
+plotratecoeffs:
+	gnuplot plot-ratecoeffs.gp
 
 plotfences:
 	./plot-fences.sh "$(OUTDIR)/`ls outdata | tail -n 1`"
@@ -108,5 +111,6 @@ showplots:
 showmsgs:
 	grep "$(OUTDIR)/`ls $(OUTDIR) | tail -n 1`" -e \#
 
-
+showlastoutput:
+	cat "$(OUTDIR)/`ls $(OUTDIR) | tail -n 1`"
 
