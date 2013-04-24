@@ -2,7 +2,7 @@
         use precision
 
         use mpi, only : rnk, nproc, init_mpi, barrier, share_data, finalize_mpi, wtime
-        use io, only : raw, e0raw, e1raw, fnames, NDataFiles, read_program_input, clean_up_io
+        use io, only : raw, e0raw, e1raw, fnames, NDataFiles, read_program_input, clean_up_io, action
         use physics, only : p, init_physics, NCollProc, cs, cs_min, cs_max, products
         use interpolation, only : cs, nri, init_interpolation, interpolate, clean_up_interp
         use random, only : seed_rand_0
@@ -13,7 +13,7 @@
         implicit none
 
 910   format('# ', a, ' took ', Es10.3, ' s')
-
+920   format('# ', a, ' took ', F6.2, ' s')
         ! VARIABLE DECLARATIONS       
         integer(lkind) Nruns, i
         real(rkind) tfin, dt
@@ -93,7 +93,7 @@
           call barrier()
           if (rnk.eq.0) then
             t_sim = wtime() - t_sim
-            write(*,910), 'Simulation', t_sim
+            write(*,920), 'Simulation', t_sim
           end if
 
         ! POST PROCESSING
@@ -105,14 +105,17 @@
 
           ! summarize eedf
           call calculate_totals()
-          ! print eedf
-          ! call print_eedf(dt, tfin, e0)
 
-          ! calculate rate coefficients
           if (rnk.eq.0) then
-            call calculate_ratecoeffs_evolution(e0)
-            call print_ratecoeffs(dt, tfin)
-            call clean_up_ratecoeffs()
+            if (trim(action).eq.'eedf') then
+              ! print eedf
+              call print_eedf(dt, tfin, e0)
+            elseif (trim(action).eq.'rates') then
+              ! calculate rate coefficients
+              call calculate_ratecoeffs_evolution(e0)
+              call print_ratecoeffs(dt, tfin)
+              call clean_up_ratecoeffs()
+            end if
           end if
 
           ! stop postprocessing and all timers
@@ -128,4 +131,4 @@
           !  deallocate(bins)g
           call clean_up_interp()
           call finalize_mpi()
-      end program run_simulation
+        end program run_simulation

@@ -4,6 +4,7 @@
         integer NDataFiles
         
         character(len=25), allocatable :: fnames(:)
+        character(len=25) action
         integer, allocatable :: nrd(:)
         real(rkind), allocatable :: raw(:,:,:)
         real(rkind), allocatable :: e0raw(:), e1raw(:)
@@ -30,6 +31,7 @@
         allocate(productsraw(NDataFiles))
 
         read *, fnames
+        read *, action
         Nruns = int(NRunsreal)
 
         if (NRunsreal .gt. huge(lkind)) then
