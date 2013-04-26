@@ -52,9 +52,10 @@
 
         subroutine print_eedf(dt, tfin, e0)
           use mpi, only : rnk
+          use physics, only : NCollProc, cross_section
           implicit none
 
-          integer it, i
+          integer it, i, ip
           ! variables for output
           real(rkind) t, e, p, dt, e0, tfin
 
@@ -64,7 +65,7 @@
                 t = min(dt*it, tfin)
                 e = i*e0/real(Nbins,rkind)
                 p = real(binsum(i,it),rkind)*norm_factor(it)
-                write(*,'(3(E15.8))') t,e,p
+                write(*,'(A,10(E15.8))') 'eedf', t,e,p, (/ (cross_section(e, ip), ip=1, int(NCollProc)) /), (/ (e*p*cross_section(e,ip), ip=1, int(NCollProc)) /)
               end do
               write (*,*) " "
             end do
