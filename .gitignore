@@ -6,6 +6,7 @@
 *.o
 *.mod
 run_simulation
+indatatester
 
 # Output files
 *.out
