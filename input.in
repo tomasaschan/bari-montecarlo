@@ -1,8 +1,7 @@
-1e7
+1e6
 20e-9
-2e-9
-1e3
+1e-10
+.1e3
 50e-3
 3
 "data/N2.dat"  "data/N2+B.dat" "data/N2C-1.dat"
-rates
