@@ -38,7 +38,7 @@
 
           do it = 1, Ntimes
             t = min(dt*it,tfin)
-            write(*,'(4(E15.8))'), t, k(it,:)
+            write(*,'(A,4(E15.8))'), 'rate', t, k(it,:)!/k(it,1)
           end do
         end subroutine print_ratecoeffs
 
@@ -64,12 +64,12 @@
             ! integrate \int e*f(e)*cs(e)*de using the trapezoidal rule
             do ie=1, Nbins-1
               fa = ie*bins(ie,it)*cross_section(ie*de, ip)
-              fb = (ie+i)*bins(ie+1,it)*cross_section((ie+1)*de,ip)
+              fb = sqrt((ie+i)*de)*bins(ie+1,it)*cross_section((ie+1)*de,ip)
               I = I + 0.5*(fa + fb)
             end do
             
 
-            k(it,ip) = sqrt(2/me) * (de*de)/2 * I
+            k(it,ip) = sqrt(2/me) * (de)/2 * I
 
           end do
         end subroutine calculate_ratecoeffs
