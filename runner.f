@@ -2,7 +2,7 @@
         use precision
 
         use mpi, only : rnk, nproc, init_mpi, barrier, share_data, finalize_mpi, wtime
-        use io, only : raw, e0raw, e1raw, fnames, NDataFiles, read_program_input, clean_up_io, action
+        use io, only : raw, e0raw, e1raw, fnames, NDataFiles, read_program_input, clean_up_io
         use physics, only : p, init_physics, NCollProc, cs, cs_min, cs_max, products
         use interpolation, only : cs, nri, init_interpolation, interpolate, clean_up_interp
         use random, only : seed_rand_0
@@ -12,8 +12,8 @@
 
         implicit none
 
-910   format('# ', a, ' took ', Es10.3, ' s')
-920   format('# ', a, ' took ', F6.2, ' s')
+910   format('# ', a16, F12.2, ' ms')
+920   format('# ', a16, F8.2, ' s')
         ! VARIABLE DECLARATIONS       
         integer(lkind) Nruns, i
         real(rkind) tfin, dt
@@ -66,7 +66,7 @@
           call barrier()
           if (rnk.eq.0) then
             t_init = wtime() - t_init
-            write(*,910), 'Initialization', t_init
+            write(*,910), 'Initialization', t_init*1000.0
           end if
 
         ! SIMULATION
@@ -97,25 +97,23 @@
           end if
 
         ! POST PROCESSING
-          ! stop postprocessing timer
+          ! start postprocessing timer
           call barrier()
           if (rnk.eq.0) then
-            t_hist = wtime() - t_hist
+            t_hist = wtime()
           end if
 
           ! summarize eedf
           call calculate_totals()
 
           if (rnk.eq.0) then
-            if (trim(action).eq.'eedf') then
-              ! print eedf
-              call print_eedf(dt, tfin, e0)
-            elseif (trim(action).eq.'rates') then
-              ! calculate rate coefficients
-              call calculate_ratecoeffs_evolution(e0)
-              call print_ratecoeffs(dt, tfin)
-              call clean_up_ratecoeffs()
-            end if
+            ! print eedf
+            call print_eedf(dt, tfin, e0)
+
+            ! calculate rate coefficients
+            call calculate_ratecoeffs_evolution(e0)
+            call print_ratecoeffs(dt, tfin)
+            call clean_up_ratecoeffs()
           end if
 
           ! stop postprocessing and all timers
@@ -123,8 +121,8 @@
           if (rnk.eq.0) then
             t_hist = wtime() - t_hist
             t_all = wtime() - t_all
-            write(*,910) 'Postprocessing', t_hist
-            write(*,910) 'Everything', t_all
+            write(*,910) 'Postprocessing', t_hist*1000.0
+            write(*,920) 'Everything', t_all
           end if
 
         ! CLEAN UP
