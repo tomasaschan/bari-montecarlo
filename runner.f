@@ -7,7 +7,7 @@
         use interpolation, only : cs, nri, init_interpolation, interpolate, clean_up_interp
         use random, only : seed_rand_0
         use single_particle, only : onepart, e0
-        use histogram
+        use eedf
         use ratecoeffs, only : calculate_ratecoeffs_evolution, print_ratecoeffs, clean_up_ratecoeffs
 
         implicit none
@@ -54,7 +54,7 @@
 
           ! allocate space for histogram, initialize to zero
           Ntimes = int(ceiling(tfin/dt))
-          call init_bins(Ntimes)
+          call init_eedfbins(Ntimes)
 
           ! initialize physics module
           call init_physics()

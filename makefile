@@ -21,7 +21,7 @@ TESTOUT = > $(TESTER).out
 TESTCMD = ./$(TESTER) < $(INFILE) $(TESTOUT)
 
 
-MODULES = mpi.o io.o random.o interpolation.o physics.o histogram.o single_particle.o ratecoeffs.o
+MODULES = mpi.o io.o random.o interpolation.o physics.o eedf.o single_particle.o ratecoeffs.o
 ALLMODULES = precision.o $(MODULES)
 
 # Compile commands
@@ -41,7 +41,7 @@ $(RUNNER), interpolation.o: io.o
 
 io.o, random.o: mpi.o
 
-single_particle.o, interpolation.o: physics.o histogram.o
+single_particle.o, interpolation.o: physics.o eedf.o
 
 physics.o: random.o
 
