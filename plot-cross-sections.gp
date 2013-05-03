@@ -4,8 +4,6 @@ reset
 set terminal pngcairo enhanced size 40cm,25cm
 set output 'cs.png'
 
-set logscale y
-
 
 set xlabel 'Energy [eV]'
 set ylabel 'Cross-section [cm^2]'
@@ -27,6 +25,6 @@ pressurettitle = "Pressure: ".gprintf("%.1s %c",p)."Torr"
 set title energytitle.",  ".timetitle.",  ".pressurettitle
 print cmd
 plot cmd  \
-        u 1:2 w lines title 'Cross section: Ionization', \
-    ''  u 1:3 w lines title 'Cross section: N_2^+(b)', \
-    ''  u 1:4 w lines title 'Cross section: N_2(c)' 
+        u 1:($2*1e4) w lines title 'Cross section: Ionization', \
+    ''  u 1:($3*1e5) w lines title 'Cross section: N_2^+(b) [ampl: 10x]', \
+    ''  u 1:($4*1e5) w lines title 'Cross section: N_2(c) [ampl: 10x]' 

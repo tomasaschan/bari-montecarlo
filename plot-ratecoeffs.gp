@@ -16,9 +16,19 @@ timetitle = "Time: ".gprintf("%.1s %c",tfin+0)."s"
 pressurettitle = "Pressure: ".gprintf("%.1s %c",p)."Torr"
 set title energytitle.",  ".timetitle.",  ".pressurettitle
 
+set xlabel "Time [ns]"
+set ylabel "Rate coefficient [arbitrary units]"
+set yrange [1e-2:1e4]
+
 set logscale y
-set format x "%.0s %cs"
-set format y 
+set format x "%.0s"
+set format y
+set grid 
+
+set ytics nomirror
+set xtics nomirror
+
+set key bottom right
 
 plot cmd \
         u 2:3 w lines lc rgb "blue" title 'Ionization', \

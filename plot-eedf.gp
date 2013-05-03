@@ -12,7 +12,7 @@ set xlabel 'Energy [eV]'
 set ylabel 'Probability [%]'
 set format y "%.0te%T"
 set xrange [10:`head -n 4 input.in | tail -n 1`*1.01]
-set yrange [1e-3:1e2]
+#set yrange [1e-3:1e2]
 
 set ytics nomirror
 set y2tics
@@ -37,10 +37,4 @@ set title energytitle.",  ".timetitle.",  ".pressurettitle
 
 print cmd
 
-plot cmd u 3:4 w lines title 'eedf', \
-    '' u 3:8 axes x1y2 w lines title 'Integrand: Ionization' , \
-    '' u 3:9 axes x1y2 w lines title 'Integrand: N_2^+(b)' , \
-    '' u 3:10 axes x1y2 w lines title 'Integrand: N_2(c)', \
-    '' u 3:($5*1e4) axes x1y2 w lines title 'Cross section: Ionization', \
-    '' u 3:($6*1e4) axes x1y2 w lines title 'Cross section: N_2^+(b)', \
-    '' u 3:($7*1e4) axes x1y2 w lines title 'Cross section: N_2(c)' 
+plot cmd u 3:4 w lines title 'eedf'
