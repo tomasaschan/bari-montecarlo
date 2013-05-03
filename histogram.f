@@ -46,16 +46,16 @@
             totsum = sum(binsum,dim=1)
             ! divide by the total number of particles to get probability in [0,1]
             ! multiply by 100 to get probability in %
-            norm_factor = 100/real(totsum,rkind)
+            norm_factor = 1.0
           end if
         end subroutine calculate_totals
 
         subroutine print_eedf(dt, tfin, e0)
           use mpi, only : rnk
-          use physics, only : NCollProc, cross_section
+          !use physics, only : NCollProc, cross_section
           implicit none
 
-          integer it, i, ip
+          integer it, i!, ip
           ! variables for output
           real(rkind) t, e, p, dt, e0, tfin
 
@@ -65,7 +65,7 @@
                 t = min(dt*it, tfin)
                 e = i*e0/real(Nbins,rkind)
                 p = real(binsum(i,it),rkind)*norm_factor(it)
-                write(*,'(A,10(E15.8))') 'eedf', t,e,p, (/ (cross_section(e, ip), ip=1, int(NCollProc)) /), (/ (e*p*cross_section(e,ip), ip=1, int(NCollProc)) /)
+                write(*,'(A,3(E15.8))') 'eedf', t,e,p !, (/ (cross_section(e, ip), ip=1, int(NCollProc)) /), (/ (e*p*cross_section(e,ip), ip=1, int(NCollProc)) /)
               end do
               write (*,*) " "
             end do

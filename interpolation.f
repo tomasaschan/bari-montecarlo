@@ -8,7 +8,7 @@
       contains
 
         subroutine init_interpolation()
-          use io, only : NDataFiles, nrd, e0raw, e1raw, productsraw
+          use io, only : NDataFiles, e0raw, e1raw, productsraw
           !use mpi, only : rnk
           
           implicit none
@@ -27,7 +27,7 @@
         end subroutine init_interpolation
 
         subroutine interpolate(ip)
-          use io, only : nrd, raw, e0raw, e1raw
+          use io, only : nrd, raw
 
           implicit none
 

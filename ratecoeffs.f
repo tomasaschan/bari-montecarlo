@@ -28,7 +28,6 @@
 
         subroutine print_ratecoeffs(dt, tfin)
           use histogram, only : Ntimes
-          use physics, only : NCollProc
           
           implicit none
 
@@ -38,13 +37,13 @@
 
           do it = 1, Ntimes
             t = min(dt*it,tfin)
-            write(*,'(A,4(E15.8))'), 'rate', t, k(it,:)!/k(it,1)
+            write(*,'(A,4(E15.8))'), 'rate', t, k(it,:)!/k(1,:)
           end do
         end subroutine print_ratecoeffs
 
         subroutine calculate_ratecoeffs(e0, it)
-          use histogram, only : bins, Nbins
-          use physics, only : n, NCollProc, cross_section, me
+          use histogram, only : Nbins
+          use physics, only : NCollProc, cross_section, me
 
           implicit none
 
@@ -63,8 +62,9 @@
             I = 0
             ! integrate \int e*f(e)*cs(e)*de using the trapezoidal rule
             do ie=1, Nbins-1
-              fa = ie*bins(ie,it)*cross_section(ie*de, ip)
-              fb = sqrt((ie+i)*de)*bins(ie+1,it)*cross_section((ie+1)*de,ip)
+              fa = integrand(de, ip, it, ie)
+              fb = integrand(de, ip, it, ie+1)
+
               I = I + 0.5*(fa + fb)
             end do
             
@@ -74,6 +74,25 @@
           end do
         end subroutine calculate_ratecoeffs
 
+
+        function integrand(de, ip, it, ie)
+          use histogram, only : bins
+          use physics, only : cross_section
+
+          implicit none
+
+          integer, intent(in) :: ie
+          integer, intent(in) :: ip, it
+          real(rkind), intent(in) :: de
+          real(rkind) :: integrand
+          real(rkind) :: e
+
+          e = ie*de
+
+          integrand = e*bins(ie,it)*cross_section(e,ip)
+
+
+        end function integrand
 
         subroutine clean_up_ratecoeffs()
           implicit none

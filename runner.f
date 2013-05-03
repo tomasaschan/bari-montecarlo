@@ -2,7 +2,7 @@
         use precision
 
         use mpi, only : rnk, nproc, init_mpi, barrier, share_data, finalize_mpi, wtime
-        use io, only : raw, e0raw, e1raw, fnames, NDataFiles, read_program_input, clean_up_io
+        use io, only : NDataFiles, read_program_input, clean_up_io
         use physics, only : p, init_physics, NCollProc, cs, cs_min, cs_max, products
         use interpolation, only : cs, nri, init_interpolation, interpolate, clean_up_interp
         use random, only : seed_rand_0

@@ -11,7 +11,7 @@
 
         subroutine onepart(dt, tfin, Ntimes)
           !use physics
-          use histogram, only : bins, Nbins
+          use histogram, only : Nbins
         
           implicit none
 
