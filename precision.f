@@ -1,18 +1,21 @@
       module precision
-        use, intrinsic :: iso_fortran_env, only : REAL64, REAL128
+        use, intrinsic :: iso_fortran_env, only : REAL64, INT16, INT32, INT64
         use, intrinsic :: iso_c_binding, only : C_INT128_T
-
-        ! Choose 8/16-byte reals
-        integer, parameter :: rkind = REAL64
-
-        ! integer kinds for 16- and 32-byte integers
-        integer, parameter :: ikind = selected_int_kind(16)
-        integer, parameter :: lkind = selected_int_kind(32)
-
-        ! MPI_Real8 = 15, MPI_Real16 = 16
-        integer, parameter :: mpi_rkind = 15
-        ! MPI_Integer = 7, MPI_Long = 41
-        integer, parameter :: mpi_ikind = 7 
-        integer, parameter :: mpi_lkind = 41
         
+        private
+        include 'mpif.h'
+
+        ! float kind: 64-bit floats (double precision)
+        integer, parameter, public :: rkind = REAL64
+
+        ! integer kinds for 16-bit (short), 32-bit (int) and 64-bit (long) integers
+        integer, parameter, public :: skind = INT16
+        integer, parameter, public :: ikind = INT32
+        integer, parameter, public :: lkind = INT64
+
+        ! MPI kinds for int, long and double
+        integer, parameter, public :: mpi_rkind = MPI_Real8
+        integer, parameter, public :: mpi_ikind = MPI_Integer
+        integer, parameter, public :: mpi_lkind = MPI_Long
+
       end module precision

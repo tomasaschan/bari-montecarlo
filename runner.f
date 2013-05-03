@@ -17,7 +17,7 @@
         ! VARIABLE DECLARATIONS       
         integer(lkind) Nruns, i
         real(rkind) tfin, dt
-        REAL(REAL64) :: t_init, t_sim, t_hist, t_all
+        double precision :: t_init, t_sim, t_hist, t_all
         !
 
         ! INITIALIZATION
