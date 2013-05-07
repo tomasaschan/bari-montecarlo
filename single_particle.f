@@ -11,8 +11,6 @@
 
         subroutine onepart(dt, tfin, Ntimes)
           !use physics
-          use histogram, only : Nbins
-        
           implicit none
 
           real(rkind) t, dt, tfin
@@ -87,18 +85,18 @@
         end subroutine propagate
 
         subroutine collect(tidx, head)
-          use histogram, only : bins, Nbins
+          use eedf, only : eedfbins, Needfbins, de
 
           implicit none
 
           integer i, idx, tidx, head
 
           do i=1, head
-            idx = int(es(i)*real(Nbins,rkind)/e0)
+            idx = int(es(i)/de)
             if (idx .eq. 0) then
               idx = 1
             end if
-            bins(idx, tidx) = bins(idx, tidx) + 1
+            eedfbins(idx, tidx) = eedfbins(idx, tidx) + 1
           enddo
 
         end subroutine collect

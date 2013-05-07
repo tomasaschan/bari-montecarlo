@@ -9,25 +9,24 @@
         public :: clean_up_ratecoeffs
       contains
 
-        subroutine calculate_ratecoeffs_evolution(e0)
-          use histogram, only : Nbins, Ntimes
+        subroutine calculate_ratecoeffs_evolution()
+          use eedf, only : Needfbins, Ntimes
           use physics, only : NCollProc
           implicit none
 
-          real(rkind), intent(in) :: e0
           integer it
 
           allocate(k(Ntimes,NCollProc))
 
           do it=1,Ntimes
-            call calculate_ratecoeffs(e0,it)
+            call calculate_ratecoeffs(it)
           end do
 
         end subroutine calculate_ratecoeffs_evolution
 
 
         subroutine print_ratecoeffs(dt, tfin)
-          use histogram, only : Ntimes
+          use eedf, only : Ntimes
           
           implicit none
 
@@ -41,27 +40,23 @@
           end do
         end subroutine print_ratecoeffs
 
-        subroutine calculate_ratecoeffs(e0, it)
-          use histogram, only : Nbins
+        subroutine calculate_ratecoeffs(it)
+          use eedf, only : de, Needfbins
           use physics, only : NCollProc, cross_section, me
 
           implicit none
 
-          real(rkind), intent(in) :: e0
           integer, intent(in) :: it
 
           integer ip, ie
-          real(rkind) I, de, fa, fb
-
-
-          de = e0/real(Nbins,rkind)
+          real(rkind) I, fa, fb
 
           do ip=1,int(NCollProc)
             ! calculate rate coefficient for process i, and put it in k(i)
 
             I = 0
             ! integrate \int e*f(e)*cs(e)*de using the trapezoidal rule
-            do ie=1, Nbins-1
+            do ie=1, Needfbins-1
               fa = integrand(de, ip, it, ie)
               fb = integrand(de, ip, it, ie+1)
 
@@ -76,7 +71,7 @@
 
 
         function integrand(de, ip, it, ie)
-          use histogram, only : bins
+          use eedf, only : eedfbins
           use physics, only : cross_section
 
           implicit none
@@ -89,7 +84,7 @@
 
           e = ie*de
 
-          integrand = e*bins(ie,it)*cross_section(e,ip)
+          integrand = e*eedfbins(ie,it)*cross_section(e,ip)
 
 
         end function integrand
