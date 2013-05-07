@@ -9,7 +9,7 @@
         public :: clean_up_ratecoeffs
       contains
 
-        subroutine calculate_ratecoeffs_evolution(e0)
+        subroutine calculate_ratecoeffs_evolution()
           use eedf, only : Needfbins, Ntimes
           use physics, only : NCollProc
           implicit none
@@ -27,7 +27,7 @@
 
 
         subroutine print_ratecoeffs(dt, tfin)
-          use eedf, only : Ntimes
+          use histogram, only : Ntimes
           
           implicit none
 
@@ -41,8 +41,8 @@
           end do
         end subroutine print_ratecoeffs
 
-        subroutine calculate_ratecoeffs(e0, it)
-          use eedf, only : Needfbins
+        subroutine calculate_ratecoeffs(it)
+          use eedf, only : de, Needfbins
           use physics, only : NCollProc, cross_section, me
 
           implicit none
@@ -51,17 +51,14 @@
           integer, intent(in) :: it
 
           integer ip, ie
-          real(rkind) I, de, fa, fb
-
-
-          de = e0/real(Needfbins,rkind)
+          real(rkind) I, fa, fb
 
           do ip=1,int(NCollProc)
             ! calculate rate coefficient for process i, and put it in k(i)
 
             I = 0
             ! integrate \int e*f(e)*cs(e)*de using the trapezoidal rule
-            do ie=1, Needfbins-1
+            do ie=1, Nbins-1
               fa = integrand(de, ip, it, ie)
               fb = integrand(de, ip, it, ie+1)
 
@@ -76,7 +73,7 @@
 
 
         function integrand(de, ip, it, ie)
-          use eedf, only : eedfbins
+          use histogram, only : bins
           use physics, only : cross_section
 
           implicit none
@@ -89,7 +86,7 @@
 
           e = ie*de
 
-          integrand = e*eedfbins(ie,it)*cross_section(e,ip)
+          integrand = e*bins(ie,it)*cross_section(e,ip)
 
 
         end function integrand

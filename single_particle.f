@@ -11,7 +11,6 @@
 
         subroutine onepart(dt, tfin, Ntimes)
           !use physics
-          use eedf, only : Needfbins
         
           implicit none
 
@@ -28,7 +27,6 @@
           call init_arrays(Nspace, es, e0, tcs)
 
           ! Run simulation of one electron
-
           do while (tidx .le. Ntimes .and. t .le. tfin)
             ! reset collision counter
             colls_dt = 0            
@@ -88,14 +86,14 @@
         end subroutine propagate
 
         subroutine collect(tidx, head)
-          use eedf, only : eedfbins, Needfbins
+          use eedf, only : eedfbins, Needfbins, de
 
           implicit none
 
           integer i, idx, tidx, head
 
           do i=1, head
-            idx = int(es(i)*real(Needfbins,rkind)/e0)
+            idx = int(es(i)/de)
             if (idx .eq. 0) then
               idx = 1
             end if
