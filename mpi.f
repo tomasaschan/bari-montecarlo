@@ -101,9 +101,9 @@
           include 'mpif.h'
 
           integer M,N
-          integer bins(M,N), sums(M,N)
+          real(rkind) bins(M,N), sums(M,N)
 
-          call MPI_Reduce(bins,sums,M*N,MPI_Integer,MPI_Sum,0,comm,ierr)
+          call MPI_Reduce(bins,sums,M*N,mpi_rkind,MPI_Sum,0,comm,ierr)
         end subroutine reduce_bins
 
         subroutine finalize_mpi()

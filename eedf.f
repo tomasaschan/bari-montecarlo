@@ -2,13 +2,14 @@
         use precision
         private
 
-        integer, allocatable :: eedfsum(:,:), totsum(:)
+        real(rkind), allocatable :: eedfsum(:,:), totsum(:)
         real(rkind), allocatable :: norm_factor(:)
+        real(rkind), allocatable, public :: eedfbins(:,:)
 
         integer, parameter, public    :: Needfbins = int(1e3)
         integer, public :: Ntimes
+        real(rkind), public :: de
 
-        integer, allocatable, public  :: eedfbins(:,:)
 
         public :: init_eedfbins
         public :: calculate_totals
@@ -17,18 +18,22 @@
 
       contains
 
-        subroutine init_eedfbins(Ntimes)
+        subroutine init_eedfbins(Ntimes, e0)
           implicit none
 
           integer Ntimes
-          
+          real(rkind) e0
+
           allocate(eedfbins(Needfbins,Ntimes))
+          de = e0/Needfbins
           eedfbins = 0
         end subroutine init_eedfbins
 
         subroutine calculate_totals()
           use mpi, only : rnk, reduce_bins
           implicit none
+
+          integer ie, it
 
           ! reduce results to histogram
           ! master thread: allocate space for reduction
@@ -41,30 +46,44 @@
           ! calls mpi_reduce
           call reduce_bins(eedfbins,eedfsum,Needfbins,Ntimes)
 
-          ! master thread: calculate normalization factor
           if (rnk.eq.0) then
-            totsum = sum(eedfsum,dim=1)
-            ! divide by the total number of particles to get probability in [0,1]
-            ! multiply by 100 to get probability in %
-            norm_factor = 1.0
-          end if
+            do it=1,Ntimes
+              do ie=1,Needfbins
+                eedfsum(ie,it) = normalize(ie*de, eedfsum(ie,it))
+              end do
+            end do
+          end if 
+
         end subroutine calculate_totals
 
-        subroutine print_eedf(dt, tfin, e0)
+        function normalize(e, N)
+          use physics, only : me
+          implicit none
+
+          real(rkind) e, N, normalize
+
+          real(rkind), parameter :: pi = 3.14159265358979323846264338327950288419716
+          real(rkind), save :: K = 1/(4*pi)*(me/2)**(3/2)
+
+          normalize = N * K * 1/(de*sqrt(e))
+
+        end function normalize
+
+        subroutine print_eedf(dt, tfin)
           use mpi, only : rnk
           !use physics, only : NCollProc, cross_section
           implicit none
 
           integer it, i!, ip
           ! variables for output
-          real(rkind) t, e, p, dt, e0, tfin
+          real(rkind) t, e, p, dt, tfin
 
           if (rnk.eq.0) then
             do it=1, Ntimes
               do i=1, Needfbins
                 t = min(dt*it, tfin)
-                e = i*e0/real(Needfbins,rkind)
-                p = real(eedfsum(i,it),rkind)*norm_factor(it)
+                e = i*de
+                p = eedfsum(i,it)
                 write(*,'(A,3(E15.8))') 'eedf', t,e,p !, (/ (cross_section(e, ip), ip=1, int(NCollProc)) /), (/ (e*p*cross_section(e,ip), ip=1, int(NCollProc)) /)
               end do
               write (*,*) " "
