@@ -10,10 +10,12 @@ The project will be developed in FORTRAN77 using OpenMPI for parallelization.
 The program requires the following to install and run:
 
   * A Fortran compiler, e.g. [GNU Fortran](http://gcc.gnu.org/fortran/)
-  * An implementation of the MPI Framework, e.g. [Open MPI](http://www.open-mpi.org/)
+  * An implementation of the MPI Framework, e.g. [Open MPI](http://www.open-mpi.org/) or [MPICH](http://www.mpich.org/). 
   * Make, e.g. [GNU Make](http://www.gnu.org/software/make/)
 
 For the postprocessing scripts to work, [gnuplot](http://www.gnuplot.info/) is also required.
+
+To install these in Ubuntu, run `apt-get install gfortran mpich2 make gnuplot`
 
 ## Installation and execution
 
@@ -66,17 +68,9 @@ The program reads a number of parameters from `stdin` - the default in the makef
 
   1. The data files from which data for the differential cross-sections is read. This must be exactly three (3) single-quote enclosed strings, indicating relative paths to the data files, in the following order (indicating the collision product): N2+, N2+(b) and N2(c). For example, `'N2+.dat' 'N2+B.dat' 'N2C.dat'`.
 
-  The data files should contain two values per line; the first value is the energy in electronvolts, and the second is the differential cross-section in cm<sup>2</sup>; all cross-section values are multiplied by 10<sup>-4</sup> to convert to m<sup>2</sup> when read into memory.
+  The first line of the data file should contain three whitespace-separated values. The first two the lower and upper boundaries of the energy range for which this collisional process should be considered - the cross-section will be considered 0 outside this range. The third value is a 1 if the process spawns a secondary electron, and 0 otherwise.
 
-  1. The lower boundaries for the interpolation, for the respective data set, in electronvolts. Note that the ordering must be the same as for the data files.
-
-  If this boundary is outside the data set, a linear extrapolation using the two leftmost data points is used. All cross-section values outside of this boundary are assumed to be zero; it is therefore recommended to use the boundary frequencies for each reaction as the lower limit.
-
-  Example: `11 10.2 10.5`.
-  
-  1. The upper boundaries for the interpolation, in electron volts. If this boundary is outside the data set, see above. It is recommended that this boundary is strictly larger than the initial energy of the primaries, for all data files. If not at least one data series is extended beyond the initial energy of the primaries.
-
-  1. The energy loss in the process corresponding to the cross-sections, i.e. ionization or excitaiton energies, in electronvolts. Example: `14.5341 8.134 6.3245`
+  The rest of the data files should contain two values per line; the first value is the energy in electronvolts, and the second is the differential cross-section in cm<sup>2</sup>; all cross-section values are multiplied by 10<sup>-4</sup> to convert to m<sup>2</sup> when read into memory.
 
 Putting it together, this is an example of a valid input file (and in fact the default input for this project):
 
@@ -84,21 +78,17 @@ Putting it together, this is an example of a valid input file (and in fact the d
     10e-9
     2e-9
     1e3
-    2
-    "data/nist_clean_scaled.dat" "data/nist_clean_scaled.dat"
-    15.58 15.58
-    1e3 1.1e3
-    14.5341 14.5341
-
-
+    3
+    "data/N2+.dat" "data/N2+B.dat" "data/N2C.dat"
 
 ## Postprocessing
 
-The data is plotted in [gnuplot](http://www.gnuplot.info/), using the shellscript `plot.sh` which takes as a command line argument the name of the data file to plot. The shellscript processes the data file with an awk script 
+The data is plotted in [gnuplot](http://www.gnuplot.info/), using various plotting scripts. Look at them individually to see how they work.
 
-A shortcut for this is also available through
+A few shortcuts for plottin are also available through
 
-    $ make plotlast
+    $ make ploteedf
+    $ make plotratecoeffs
 
 and the plots can be shown via e.g. `eog *.png`, or conveniently
 
