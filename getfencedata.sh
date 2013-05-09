@@ -2,16 +2,18 @@
 
 lastdata="outdata/`ls outdata | tail -n 1`"
 
-grep "$lastdata" -e "\#" > outdata-valuable/fencedata.out
+rm -f "outdata/fences/*"
 
-for i in {2..8..2}
+for i in {1..9..1}
 do
-    awkcmd="/eedf 0\.${i}0+E-08/ { print \$2, \$3, \$4 }"
-    cat $lastdata | awk "$awkcmd" >> outdata-valuable/fencedata.out
+    grep "$lastdata" -e "\#" > "outdata/fences/fencedata.$i.out"
+    awkcmd="/eedf 0\.${i}0+E-08/ { print $i, \$2, \$3, \$4 }"
+    cat $lastdata | awk "$awkcmd" >> "outdata-valuable/fencedata.$i.out"
 done
 
-for i in {10..20..2}
+for i in {1..9..1}
 do
-    awkcmd="/eedf 0\.${i}0+E-07/ { print \$2, \$3, \$4 }"
-    cat $lastdata | awk "$awkcmd" >> outdata-valuable/fencedata.out
+    grep "$lastdata" -e "\#" > "outdata/fences/fencedata.$i.out"
+    awkcmd="/eedf 0\.${i}0+E-07/ { print ($i+9), \$2, \$3, \$4 }"
+    cat $lastdata | awk "$awkcmd" >> "outdata/fences/fencedata.rest.out"
 done

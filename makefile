@@ -102,12 +102,12 @@ memcheckp: $(RUNNER)
 ploteedf:
 	gnuplot plot-eedf.gp
 
+ploteedfevolution:
+	gnuplot plot-eedf-evolution.gp
+
 plotratecoeffs:
 	gnuplot plot-ratecoeffs.gp
 
-plotfences:
-	./plot-fences.sh "$(OUTDIR)/`ls outdata | tail -n 1`"
-	
 showplots:
 	eog *.png 2> /dev/null &
 

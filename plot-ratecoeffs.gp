@@ -17,7 +17,7 @@ pressurettitle = "Pressure: ".gprintf("%.1s %c",p)."Torr"
 set title energytitle.",  ".timetitle.",  ".pressurettitle
 
 set xlabel "Time [ns]"
-set ylabel "Rate coefficient [arbitrary units]"
+set ylabel "Rate coefficient"
 set yrange [1e-2:1e4]
 
 set logscale y
