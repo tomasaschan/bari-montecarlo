@@ -86,6 +86,9 @@ testind: indatatester
 # Debug
 
 debug: $(RUNNER)
+	gdb $(RUNNER)
+
+debugp: $(RUNNER)
 	mpirun -np 2 xterm -e gdb $(CMD) &
 
 memcheck: $(RUNNER)

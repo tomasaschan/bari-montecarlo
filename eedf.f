@@ -6,7 +6,7 @@
         real(rkind), allocatable :: norm_factor(:)
         real(rkind), allocatable, public :: eedfbins(:,:)
 
-        integer, parameter, public    :: Needfbins = int(1e3)
+        integer, parameter, public    :: Needfbins = int(5e2)
         integer, public :: Ntimes
         real(rkind), public :: de
 
