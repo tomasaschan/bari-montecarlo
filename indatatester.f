@@ -6,7 +6,7 @@
 
         implicit none
         integer(lkind) Nruns, i
-        real(rkind) tfin, dt, e0, Pnull!, !ct, Pnull
+        real(rkind) tfin, dt, e0, Pnull, cftot !ct, Pnull
         real(rkind), allocatable :: css(:)
 
         call read_program_input(Nruns, tfin, dt, e0, p)
@@ -19,26 +19,22 @@
 
         allocate(css(NDataFiles))
 
-        css = (/ (cross_section(e0, int(i,4)), i=1,NDataFiles) /)
+        css = (/ (cross_section(e0, int(i,ikind)), i=1,NDataFiles) /)
 
         print *, "# Cross sections:"
         print *, css
+        
+
+        print *, "# Total/actual collision time:"
+        cftot = velocity(e0)*n*sum(css)
+        print *, 1/total_collision_frequency, 1/cftot
+
         print *, "# Probability of null collision:"
-        Pnull = 1-velocity(e0)*n*sum(css)/total_collision_frequency
+        Pnull = 1-cftot/total_collision_frequency
         print *, Pnull
-        print *, "# Total collision time:"
-        print *, 1/total_collision_frequency
-!         print *, "# A few sample collision times:"
-!         do i=1,5
-!           ct = collision_time()
-!           if (ct .gt. tfin) then
-!             print *, ct, "> tfin"
-!           else
-!             print *, ct, "< tfin"
-!           end if
-!         end do
-        print *, "# Probability of collision before tfin:"
-        print *, (1-exp(-total_collision_frequency*tfin))*(1-Pnull)
+
+        print *, "# Avg number of non-collided particles at tfin:"
+        write(*,'(Es15.2)') (1-exp(-total_collision_frequency*tfin))*(1-Pnull)*Nruns
 
 
         call clean_up_interp()
