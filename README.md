@@ -31,6 +31,8 @@ or simply
 
 This compiles all the code and creates an executable binary `run_simulation` in the project root. 
 
+You might also have to create the directory `outdata` in the project root.
+
 ### Execution
 
 To execute, run with
@@ -88,6 +90,7 @@ The data is plotted in [gnuplot](http://www.gnuplot.info/), using various plotti
 A few shortcuts for plottin are also available through
 
     $ make ploteedf
+    $ make ploteedfevolution
     $ make plotratecoeffs
 
 and the plots can be shown via e.g. `eog *.png`, or conveniently
