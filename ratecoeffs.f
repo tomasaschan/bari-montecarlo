@@ -41,31 +41,23 @@
         end subroutine print_ratecoeffs
 
         subroutine calculate_ratecoeffs(it)
-          use eedf, only : de, Needfbins
+          use eedf, only : Needfbins, de
           use physics, only : NCollProc, cross_section, me
 
           implicit none
 
           integer, intent(in) :: it
+          real(rkind), parameter :: pi = 3.14159265358979323846264338327950288419716
+          real(rkind), save :: propconst
 
           integer ip, ie
-          real(rkind) I, fa, fb
 
+          propconst = 1/sqrt(2*me)*de !/(16*pi)
+
+          ! calculate rate coefficient for process i, and put it in k(i)
           do ip=1,int(NCollProc)
-            ! calculate rate coefficient for process i, and put it in k(i)
-
-            I = 0
             ! integrate \int e*f(e)*cs(e)*de using the trapezoidal rule
-            do ie=1, Needfbins-1
-              fa = integrand(ip, it, ie)
-              fb = integrand(ip, it, ie+1)
-
-              I = I + 0.5*(fa + fb)
-            end do
-            
-
-            k(it,ip) = sqrt(2/me) * (de)/2 * I
-
+            k(it,ip) = propconst * sum((/ (integrand(ip,it,ie)+integrand(ip,it,ie+1), ie=1, Needfbins-1) /))
           end do
         end subroutine calculate_ratecoeffs
 
