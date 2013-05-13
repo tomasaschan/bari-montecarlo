@@ -34,7 +34,7 @@
           implicit none
 
           integer ie, it
-
+          
           ! reduce results to histogram
           ! master thread: allocate space for reduction
           if (rnk.eq.0) then
@@ -48,9 +48,13 @@
 
           if (rnk.eq.0) then
             do it=1,Ntimes
+              ! normalize to f(e) according to paper
               do ie=1,Needfbins
                 eedfsum(ie,it) = normalize(ie*de, eedfsum(ie,it))
               end do
+
+              ! normalize entire eedf to 1
+              eedfsum(:,it) = eedfsum(:,it)/sum(eedfsum(:,it))
             end do
           end if 
 
