@@ -99,6 +99,10 @@ memcheckp: $(RUNNER)
 
 # Plot and show
 
+plots: ploteedfevolution plotratecoeffs
+	mkdir -p "plots/$(tstamp)"
+	mv *.png "plots/$(tstamp)"
+
 ploteedf:
 	gnuplot plot-eedf.gp
 
@@ -109,7 +113,7 @@ plotratecoeffs:
 	gnuplot plot-ratecoeffs.gp
 
 showplots:
-	eog *.png 2> /dev/null &
+	eog "plots/`ls plots | tail -n 2 | head -n 1`/"*.png 2> /dev/null &
 
 showmsgs:
 	grep "$(OUTDIR)/`ls $(OUTDIR) | tail -n 1`" -e \#

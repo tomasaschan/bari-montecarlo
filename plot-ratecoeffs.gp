@@ -18,11 +18,11 @@ set title energytitle.",  ".timetitle.",  ".pressurettitle
 
 set xlabel "Time [ns]"
 set ylabel "Rate coefficient"
-set yrange [1e-2:1e4]
+set yrange [5e-1:1e5]
 
 set logscale y
 set format x "%.0s"
-set format y
+set format y "%.0te%T"
 set grid 
 
 set ytics nomirror
