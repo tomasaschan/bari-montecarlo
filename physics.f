@@ -32,7 +32,7 @@
           integer(lkind) ie
 
           real(rkind) :: cfreqs(Ncs)
-          real(rkind), parameter   :: T = 300.0
+          real(rkind), parameter   :: T = 298.0
           real(rkind), parameter   :: kB = 1.3806488e-23
           real(rkind), parameter :: Torr2Pa = 101325/760
           
@@ -115,14 +115,11 @@
             cfsum = cfsum + collision_frequency(es(idx), ip) / total_collision_frequency
 
             if (cfsum .gt. r) then
-              ! this is the process we want
+              ! this the process we want
+              ! ip already has correct index
               exit selectproc
             end if
           end do selectproc
-
-          ! test for null collision
-          
-          ! real collision
 
           ! subtract energy loss from available energy
           es(idx) = es(idx) - cs_min(ip)
