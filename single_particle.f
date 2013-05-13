@@ -21,7 +21,7 @@
           integer Ntimes
 
           ! Initialize simulation
-          t = 0.0D0
+          t = 0.0_rkind
           tidx = 1
           head = 1
           call init_arrays(Nspace, es, e0, tcs)
@@ -40,7 +40,7 @@
           enddo
             
           ! if tfin/dt is not even, propagate to tfin
-          if (t-dt .lt. tfin) then
+          if (t .lt. tfin) then
             call propagate(tfin-(t-dt), head)
             ! collect final value
             call collect(tidx-1, head)
