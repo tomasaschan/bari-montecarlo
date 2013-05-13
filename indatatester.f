@@ -6,7 +6,7 @@
 
         implicit none
         integer(lkind) Nruns, i
-        real(rkind) tfin, dt, e0, Pnull, cftot !ct, Pnull
+        real(rkind) tfin, dt, e0, Pnull, Pcoll, cftot !ct, Pnull
         real(rkind), allocatable :: css(:)
 
         call read_program_input(Nruns, tfin, dt, e0, p)
@@ -31,11 +31,11 @@
 
         print *, "# Probability of null collision:"
         Pnull = 1-cftot/total_collision_frequency
-        print *, Pnull
+        write(*,'((F6.3),(A))') Pnull*100, "%"
 
         print *, "# Avg number of non-collided particles at tfin:"
-        write(*,'(Es15.2)') (1-exp(-total_collision_frequency*tfin))*(1-Pnull)*Nruns
-
+        Pcoll = 1-(1-exp(-total_collision_frequency*tfin))*(1-Pnull)
+        write(*,'((Es15.2),(F6.2),(A))') Pcoll*Nruns, 100*Pcoll, "%"
 
         call clean_up_interp()
 
