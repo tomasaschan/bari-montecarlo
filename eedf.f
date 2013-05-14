@@ -48,6 +48,9 @@
 
           if (rnk.eq.0) then
             do it=1,Ntimes
+              ! output number of electrons at e0
+              write(*,'((A),(I0),(E15.4))') "e0(t)   ", it, eedfsum(Needfbins,it)
+
               ! normalize to f(e) according to paper
               do ie=1,Needfbins
                 eedfsum(ie,it) = normalize(ie*de, eedfsum(ie,it))
