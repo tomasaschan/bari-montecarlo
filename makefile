@@ -21,7 +21,7 @@ TESTOUT = > $(TESTER).out
 TESTCMD = ./$(TESTER) < $(INFILE) $(TESTOUT)
 
 
-MODULES = mpi.o io.o random.o interpolation.o physics.o eedf.o single_particle.o ratecoeffs.o
+MODULES = mpi.o io.o random.o interpolation.o physics.o eedf.o single_particle.o ratecoeffs.o populations.o
 ALLMODULES = precision.o $(MODULES)
 
 # Compile commands
@@ -55,7 +55,7 @@ indatatester: $(ALLMODULES)
 clean:
 	rm -f *~ .fuse_* *.o *.mod $(BINARIES) *.out
 removealloutput:
-	rm -f $(OUTDIR)/*
+	rm -rf $(OUTDIR)/*
 
 list:
 	clear
@@ -99,7 +99,7 @@ memcheckp: $(RUNNER)
 
 # Plot and show
 
-plots: ploteedfevolution plotratecoeffs
+plots: ploteedfevolution plotratecoeffs plotpopulations
 	mkdir -p "plots/$(tstamp)"
 	mv *.png "plots/$(tstamp)"
 
@@ -112,6 +112,9 @@ ploteedfevolution:
 plotratecoeffs:
 	gnuplot plot-ratecoeffs.gp
 
+plotpopulations:
+	gnuplot plot-populations.gp
+
 showplots:
 	eog "plots/`ls plots | tail -n 2 | head -n 1`/"*.png 2> /dev/null &
 
@@ -121,3 +124,9 @@ showmsgs:
 showlastoutput:
 	cat "$(OUTDIR)/`ls $(OUTDIR) | tail -n 1`"
 
+sanitycheck:
+	rm -rf sanitycheck.png sanity.out
+	make showlastoutput | awk '/^eedf.*E\+04/' > sanity.out
+	gnuplot plot-sanitycheck.gp
+	eog sanitycheck.png
+	
