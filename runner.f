@@ -3,12 +3,13 @@
 
         use mpi, only : rnk, nproc, init_mpi, barrier, share_data, finalize_mpi, wtime
         use io, only : NDataFiles, read_program_input, clean_up_io
-        use physics, only : p, init_physics, NCollProc, cs, cs_min, cs_max, products
+        use physics, only : p, init_physics, NCollProc, cs, cs_min, cs_max, products, dt, tfin
         use interpolation, only : cs, nri, init_interpolation, interpolate, clean_up_interp
         use random, only : seed_rand_0
         use single_particle, only : onepart, e0
         use eedf, only : init_eedfbins, Ntimes, calculate_totals, print_eedf
         use ratecoeffs, only : calculate_ratecoeffs_evolution, print_ratecoeffs, clean_up_ratecoeffs
+        use populations
 
         implicit none
 
@@ -16,7 +17,6 @@
 920   format('# ', a16, F8.2, ' s')
         ! VARIABLE DECLARATIONS       
         integer(lkind) Nruns, i
-        real(rkind) tfin, dt
         double precision :: t_init, t_sim, t_hist, t_all
         !
 
@@ -54,7 +54,7 @@
 
           ! allocate space for histogram, initialize to zero
           Ntimes = int(ceiling(tfin/dt))
-          call init_eedfbins(Ntimes, e0)
+          call init_eedfbins(e0)
 
           ! initialize physics module
           call init_physics()
@@ -79,13 +79,13 @@
 
           ! split work on all threads
           do i=1, Nruns/nproc
-            call onepart(dt, tfin, Ntimes)
+            call onepart()
           end do
           
           ! master thread: run remaining, if Nruns/nproc is not even
           if (rnk.eq.0) then
             do i=1, Nruns-nproc*(Nruns/nproc)
-              call onepart(dt, tfin, Ntimes)
+              call onepart()
             end do
           end if
 
@@ -112,8 +112,13 @@
 
             ! calculate rate coefficients
             call calculate_ratecoeffs_evolution()
-            call print_ratecoeffs(dt, tfin)
+            call print_ratecoeffs()
+
+            call calculate_pops()
+            call print_pops()
+
             call clean_up_ratecoeffs()
+            call clean_up_pops()
           end if
 
           ! stop postprocessing and all timers
