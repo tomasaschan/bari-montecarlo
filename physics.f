@@ -17,6 +17,8 @@
 
         real(rkind), public :: me, e
         parameter(me=9.11E-31,e = 1.602176E-19)
+        real(rkind), public :: dt, tfin
+
 
         public :: init_physics
         public :: cross_section
