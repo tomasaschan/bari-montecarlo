@@ -99,7 +99,7 @@ memcheckp: $(RUNNER)
 
 # Plot and show
 
-plots: ploteedfevolution plotratecoeffs plotpopulations
+plots: ploteedfevolution plotratecoeffs plotpopulations plotratecoeffsratios
 	mkdir -p "plots/$(tstamp)"
 	mv *.png "plots/$(tstamp)"
 
@@ -111,6 +111,9 @@ ploteedfevolution:
 
 plotratecoeffs:
 	gnuplot plot-ratecoeffs.gp
+
+plotratecoeffsratios:
+	gnuplot plot-ratequote.gp
 
 plotpopulations:
 	gnuplot plot-populations.gp
