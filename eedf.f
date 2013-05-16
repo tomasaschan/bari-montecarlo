@@ -18,13 +18,12 @@
 
       contains
 
-        subroutine init_eedfbins(Ntimes, e0)
+        subroutine init_eedfbins(e0)
           implicit none
 
-          integer Ntimes
           real(rkind) e0
 
-          allocate(eedfbins(Needfbins,Ntimes))
+          allocate(eedfbins(Needfbins,0:Ntimes))
           de = e0/Needfbins
           eedfbins = 0
         end subroutine init_eedfbins
@@ -38,16 +37,17 @@
           ! reduce results to histogram
           ! master thread: allocate space for reduction
           if (rnk.eq.0) then
-            allocate(eedfsum(Needfbins, Ntimes))
+            allocate(eedfsum(Needfbins, 0:Ntimes))
             allocate(totsum(Ntimes))
             allocate(norm_factor(Ntimes))
           end if
+
 
           ! calls mpi_reduce
           call reduce_bins(eedfbins,eedfsum,Needfbins,Ntimes)
 
           if (rnk.eq.0) then
-            do it=1,Ntimes
+            do it=0,Ntimes
               ! output number of electrons at e0
               write(*,'((A),(I0),(E15.4))') "e0(t)   ", it, eedfsum(Needfbins,it)
 
@@ -59,7 +59,10 @@
               ! normalize entire eedf to 1
               eedfsum(:,it) = eedfsum(:,it)/sum(eedfsum(:,it))
             end do
+            ! carry over to original variable, to make sure that the correct values are always used
+            eedfbins = eedfsum
           end if 
+
 
         end subroutine calculate_totals
 
@@ -78,7 +81,6 @@
 
         subroutine print_eedf(dt, tfin)
           use mpi, only : rnk
-          !use physics, only : NCollProc, cross_section
           implicit none
 
           integer it, i!, ip
@@ -86,7 +88,7 @@
           real(rkind) t, e, p, dt, tfin
 
           if (rnk.eq.0) then
-            do it=1, Ntimes
+            do it=0, Ntimes
               do i=1, Needfbins
                 t = min(dt*it, tfin)
                 e = i*de

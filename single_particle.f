@@ -9,22 +9,21 @@
 
       contains
 
-        subroutine onepart(dt, tfin, Ntimes)
-          !use physics
-        
+        subroutine onepart()
+          use eedf, only : Ntimes
+          use physics, only : dt, tfin
           implicit none
 
-          real(rkind) t, dt, tfin
-         
-          ! How many particles we allocate space for
-
-          integer Ntimes
+          real(rkind) t
 
           ! Initialize simulation
           t = 0.0_rkind
           tidx = 1
           head = 1
           call init_arrays(Nspace, es, e0, tcs)
+
+          ! Collect initial state
+          call collect(0, head)
 
           ! Run simulation of one electron
           do while (tidx .le. Ntimes .and. t .le. tfin)
@@ -40,8 +39,8 @@
           enddo
             
           ! if tfin/dt is not even, propagate to tfin
-          if (t .lt. tfin) then
-            call propagate(tfin-(t-dt), head)
+          if (t .lt. tfin .and. (abs(tfin-t) .gt. dt*1e-6)) then
+            call propagate(tfin-t, head)
             ! collect final value
             call collect(tidx-1, head)
           end if
