@@ -30,6 +30,7 @@
 
         subroutine calculate_totals()
           use mpi, only : rnk, reduce_bins
+          use physics, only : dt
           implicit none
 
           integer ie, it
@@ -49,7 +50,7 @@
           if (rnk.eq.0) then
             do it=0,Ntimes
               ! output number of electrons at e0
-              write(*,'((A),(I0),(E15.4))') "e0(t)   ", it, eedfsum(Needfbins,it)
+              write(*,'((A),2(E15.4))') "e0(t)   ", it*dt, eedfsum(Needfbins,it)
 
               ! normalize to f(e) according to paper
               do ie=1,Needfbins
