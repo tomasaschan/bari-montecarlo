@@ -4,7 +4,9 @@
 
         real(rkind), allocatable, public :: k(:,:)
 
-        public :: calculate_ratecoeffs_evolution
+        real(rkind) tstep, endt
+
+        public :: calculate_ratecoeffs_evolution, ratecoeff
         public :: print_ratecoeffs
         public :: clean_up_ratecoeffs
       contains
@@ -16,25 +18,25 @@
 
           integer it
 
-          allocate(k(Ntimes,NCollProc))
+          allocate(k(0:Ntimes,NCollProc))
 
-          do it=1,Ntimes
+          do it=0,Ntimes
             call calculate_ratecoeffs(it)
           end do
 
         end subroutine calculate_ratecoeffs_evolution
 
 
-        subroutine print_ratecoeffs(dt, tfin)
+        subroutine print_ratecoeffs()
           use eedf, only : Ntimes
+          use physics, only : dt, tfin
           
           implicit none
 
-          real(rkind), intent(in) :: dt, tfin
           real(rkind) t
           integer :: it
 
-          do it = 1, Ntimes
+          do it = 0, Ntimes
             t = min(dt*it,tfin)
             write(*,'(A,4(E15.8))'), 'rate', t, k(it,:)!/k(1,:)
           end do
@@ -61,6 +63,27 @@
           end do
         end subroutine calculate_ratecoeffs
 
+        function ratecoeff(t, ip)
+          use physics, only : dt, tfin
+          use eedf, only : Ntimes
+          implicit none
+          
+          real(rkind), intent(in) :: t
+          integer, intent(in) :: ip
+
+          integer it
+          real(rkind) delta, ratecoeff, grad
+
+          it = int(t/dt)
+          delta = t - it*dt
+
+          if (it .lt. Ntimes) then
+            grad = (k(it+1,ip) - k(it,ip)) / (min(tfin, (it+1)*dt) - it*dt)
+            ratecoeff = k(it,ip) + delta*grad
+          else
+            ratecoeff = k(it,ip)
+          end if
+        end function ratecoeff
 
         function integrand(ip, it, ie)
           use eedf, only : eedfbins, de
