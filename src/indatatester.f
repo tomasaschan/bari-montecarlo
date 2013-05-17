@@ -6,7 +6,7 @@
 
         implicit none
         integer(lkind) Nruns, i
-        real(rkind) tfin, dt, e0, Pnull, Pcoll, cftot !ct, Pnull
+        real(rkind) e0, Pnull, Pcoll, cftot !ct, Pnull
         real(rkind), allocatable :: css(:)
 
         call read_program_input(Nruns, tfin, dt, e0, p)

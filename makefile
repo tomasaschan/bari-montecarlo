@@ -1,135 +1,98 @@
-FC = mpif90
-FWARNINGS = -Wall -Warray-bounds 
-FOPTS = -ffixed-line-length-none -fbounds-check 
-FFLAGS=-O0 -g $(FWARNINGS) $(FOPTS)
-VALGRINDOPTS = --suppressions=/usr/share/openmpi/openmpi-valgrind.supp --gen-suppressions=all
+# Compiler options
+FC 			:= 	mpif90
+FFLAGS		:=	-O3 -g -Wall -Warray-bounds -ffixed-line-length-none -fbounds-check 
+VPATH		:=	src
+BINDIR		:=	bin
 
-tstamp = $(shell date '+%Y-%m-%d-%H-%M-%S')
-OUTDIR = outdata
-
-RUNNER = run_simulation
-TESTER = quicktest
-
-BINARIES = $(RUNNER) $(TESTER) indatatester
-
-INFILE = input.in
-OUTFILE = $(OUTDIR)/$(RUNNER)_$(tstamp).out
-CMDOUT =  > $(OUTFILE)
-CMD = ./$(RUNNER) < $(INFILE) $(CMDOUT)
-
-TESTOUT = > $(TESTER).out
-TESTCMD = ./$(TESTER) < $(INFILE) $(TESTOUT)
+# Information about this run
+INFILE 		:= 	input.in
 
 
-MODULES = mpi.o io.o random.o interpolation.o physics.o eedf.o single_particle.o ratecoeffs.o populations.o
-ALLMODULES = precision.o $(MODULES)
+# Options for memory checking
+# VALGRINDOPTS = --gen-suppressions=all
 
-# Compile commands
+# All modules
+OBJS		:= 	$(BINDIR)/precision.o $(BINDIR)/mpi.o $(BINDIR)/io.o $(BINDIR)/random.o $(BINDIR)/physics.o $(BINDIR)/interpolation.o $(BINDIR)/eedf.o $(BINDIR)/ratecoeffs.o $(BINDIR)/single_particle.o $(BINDIR)/populations.o 
 
-install: $(RUNNER)
+# Default rule
+all: runner | $(BINDIR)
 
-all: $(MODULES) $(BINARIES)
+# Set some make specials
+.SUFFIXES:
+.SUFFIXES: .f .o .mod 
 
-$(RUNNER): $(MODULES) runner.f
-	$(FC) $(FFLAGS) -o $@ $^
+.PHONY: setid getid
 
-# Dependencies
+# Build rules
 
-$(MODULES): precision.o
+$(BINDIR)/%.o: $(VPATH)/%.f | $(BINDIR)
+	$(FC) $(FFLAGS) -c $^ -o $@
 
-$(RUNNER), interpolation.o: io.o 
+runner: $(OBJS)
 
-io.o, random.o: mpi.o
+# Running the program
 
-single_particle.o, interpolation.o: physics.o eedf.o
+run: runner | setid outdir
+	@cp $(INFILE) $(OUTDIR)
+	@echo -n "Running simulation..."
+	@mpirun -n 1 $(CMD)
+	@echo "done!"
+	@cat $(OUTFILE) | grep -e \# | sed 's/\# //'
 
-physics.o: random.o
+# Plotting data
+plot: ploteedfevolution plotratecoeffs plotratequotient plotpopulations
 
-quicktest: $(ALLMODULES)
+ploteedfevolution: getid
+	cd scripts; gnuplot -e "srcdir='$(OUTDIR)'" plot-eedf-evolution.gp 
 
-indatatester: $(ALLMODULES)
+plotratecoeffs: getid
+	cd scripts; gnuplot -e "srcdir='$(OUTDIR)'" plot-ratecoeffs.gp
 
+plotratequotient: getid
+	cd scripts; gnuplot -e "srcdir='$(OUTDIR)'" plot-ratequote.gp
 
-# Miscellaneous helpers
+plotpopulations: getid
+	cd scripts; gnuplot -e "srcdir='$(OUTDIR)'" plot-populations.gp
+
+plotcrossections:
+	gnuplot scripts/plot-cross-sections.gp
+
+showplots: getid
+	eog "$(OUTDIR)/"*.png 2> /dev/null &
+
+# Helpers
+setid: FORCE
+	$(eval run_id 	:= 	$(shell date '+%Y-%m-%d-%H-%M-%S'))
+	$(eval OUTDIR 	:= 	out/$(run_id))
+	$(eval OUTFILE 	:= 	$(OUTDIR)/simulation.out)
+	$(eval CMD		:=	./runner < $(INFILE) > $(OUTFILE))
+	@echo "Outdata in: $(OUTDIR)/"
+
+getid: FORCE
+	$(eval run_id := $(shell ls out | tail -n 1))
+	$(eval OUTDIR := out/$(run_id))
+	$(eval OUTFILE 	:= 	$(OUTDIR)/simulation.out)
+	$(eval CMD		:=	./runner < $(INFILE) > $(OUTFILE))
+	@echo "Looking in $(OUTDIR)/"
+
+outdir:
+	@mkdir -p $(OUTDIR)
+
+$(OUTDIR): getid
+	mkdir -p $(OUTDIR)
+
+$(BINDIR):
+	@mkdir -p $(BINDIR)
 
 clean:
-	rm -f *~ .fuse_* *.o *.mod $(BINARIES) *.out
-removealloutput:
-	rm -rf $(OUTDIR)/*
+	@echo -n "Cleaning..."
+	@rm -rf $(BINDIR) *.mod
+	@echo "done!"
 
-list:
-	clear
-	ls -l --sort=extension --group-directories-first --color=auto
+cleanout:
+	@echo -n "Cleaning outdata..."
+	@rm -rf out
+	@echo "done!"
 
-# Run
-
-run: $(RUNNER)
-	mpirun -np 1 $(CMD)
-	grep $(OUTFILE) -e \#
-
-runp: $(RUNNER)
-	mpirun -np 4 $(CMD)
-	grep $(OUTFILE) -e \#
-
-runvp: $(RUNNER)
-	mpirun -np $(NPROC) $(CMD)
-
-runt: $(TESTER)
-	mpirun -np 1 $(TESTCMD)
-
-runtp: $(TESTER)
-	mpirun -np 2 $(TESTCMD)
-
-testind: indatatester
-	./indatatester < $(INFILE)
-
-# Debug
-
-debug: $(RUNNER)
-	gdb $(RUNNER)
-
-debugp: $(RUNNER)
-	mpirun -np 2 xterm -e gdb $(CMD) &
-
-memcheck: $(RUNNER)
-	valgrind $(VALGRINDOPTS) $(CMD)
-
-memcheckp: $(RUNNER)
-	mpirun -np 2 valgrind $(VALGRINDOPTS) $(CMD)
-
-# Plot and show
-
-plots: ploteedfevolution plotratecoeffs plotpopulations plotratecoeffsratios
-	mkdir -p "plots/$(tstamp)"
-	mv *.png "plots/$(tstamp)"
-
-ploteedf:
-	gnuplot plot-eedf.gp
-
-ploteedfevolution:
-	gnuplot plot-eedf-evolution.gp
-
-plotratecoeffs:
-	gnuplot plot-ratecoeffs.gp
-
-plotratecoeffsratios:
-	gnuplot plot-ratequote.gp
-
-plotpopulations:
-	gnuplot plot-populations.gp
-
-showplots:
-	eog "plots/`ls plots | tail -n 2 | head -n 1`/"*.png 2> /dev/null &
-
-showmsgs:
-	grep "$(OUTDIR)/`ls $(OUTDIR) | tail -n 1`" -e \#
-
-showlastoutput:
-	cat "$(OUTDIR)/`ls $(OUTDIR) | tail -n 1`"
-
-sanitycheck:
-	rm -rf sanitycheck.png sanity.out
-	make showlastoutput | awk '/^eedf.*E\+04/' > sanity.out
-	gnuplot plot-sanitycheck.gp
-	eog sanitycheck.png
-	
+FORCE:
+	@true

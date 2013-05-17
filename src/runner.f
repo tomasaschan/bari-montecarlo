@@ -27,10 +27,8 @@
 
           ! start init and all timers
           call barrier()
-          if (rnk.eq.0) then
-            t_init = wtime()
-            t_all = wtime()
-          end if
+          t_init = wtime()
+          t_all = wtime()
 
           ! master thread: read indata and interpolate cross-sections
           if (rnk.eq.0) then
@@ -99,9 +97,7 @@
         ! POST PROCESSING
           ! start postprocessing timer
           call barrier()
-          if (rnk.eq.0) then
-            t_hist = wtime()
-          end if
+          t_hist = wtime()
 
           ! summarize eedf
           call calculate_totals()
