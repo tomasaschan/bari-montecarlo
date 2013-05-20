@@ -12,6 +12,7 @@ indatatester
 *.out
 *.png
 outdata/*
+out/*
 
 # Scratching
 scratch/*
