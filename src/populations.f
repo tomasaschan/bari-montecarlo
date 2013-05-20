@@ -67,12 +67,19 @@
           implicit none 
 
           real(rkind), intent(in) :: t, pops(2)
-          real(rkind), parameter  :: ne = 1.0
           ! return values
           real(rkind)             :: f(2)
           
-          f = ne*(/ ratecoeff(t, 2), ratecoeff(t, 3) /)*n - (Q*n+A)*pops
+          f = ne(t)*(/ ratecoeff(t, 2), ratecoeff(t, 3) /)*n - (Q*n+A)*pops
         end function f
+
+        function ne(t)
+          implicit none
+          real(rkind), intent(in) :: t
+          real(rkind) ne
+          
+          ne = 1.0
+        end function ne
 
         subroutine clean_up_pops()
           implicit none
