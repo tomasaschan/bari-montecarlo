@@ -1,6 +1,6 @@
-load 'plot-common.gp'
+load 'scripts/plot-common.gp'
 
-set output srcdir.'eedf-evolution.png'
+set output srcdir.'eedf-evolution'.ext
 set logscale z
 
 set view 80, 15

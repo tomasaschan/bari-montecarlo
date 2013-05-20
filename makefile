@@ -1,8 +1,8 @@
 # Compiler options
 FC 			:= 	mpif90
-FFLAGS		:=	-O3 -g -Wall -Warray-bounds -ffixed-line-length-none -fbounds-check 
-VPATH		:=	src
 BINDIR		:=	bin
+VPATH		:=	src
+FFLAGS		:=	-O3 -g -Wall -Warray-bounds -ffixed-line-length-none -fbounds-check -J$(BINDIR) #-I$(BINDIR)
 
 # Information about this run
 INFILE 		:= 	input.in
@@ -28,6 +28,8 @@ all: runner | $(BINDIR)
 $(BINDIR)/%.o: $(VPATH)/%.f | $(BINDIR)
 	$(FC) $(FFLAGS) -c $^ -o $@
 
+$(BINDIR)/%.mod: 
+
 runner: $(OBJS)
 
 # Running the program
@@ -39,26 +41,32 @@ run: runner | setid outdir
 	@echo "done!"
 	@cat $(OUTFILE) | grep -e \# | sed 's/\# //'
 
-# Plotting data
+# Processing data
 plot: ploteedfevolution plotratecoeffs plotratequotient plotpopulations
 
 ploteedfevolution: getid
-	cd scripts; gnuplot -e "srcdir='$(OUTDIR)'" plot-eedf-evolution.gp 
+	gnuplot -e "srcdir='$(OUTDIR)'" scripts/plot-eedf-evolution.gp 
 
 plotratecoeffs: getid
-	cd scripts; gnuplot -e "srcdir='$(OUTDIR)'" plot-ratecoeffs.gp
+	gnuplot -e "srcdir='$(OUTDIR)'" scripts/plot-ratecoeffs.gp
 
 plotratequotient: getid
-	cd scripts; gnuplot -e "srcdir='$(OUTDIR)'" plot-ratequote.gp
+	gnuplot -e "srcdir='$(OUTDIR)'" scripts/plot-ratequote.gp
 
 plotpopulations: getid
-	cd scripts; gnuplot -e "srcdir='$(OUTDIR)'" plot-populations.gp
+	gnuplot -e "srcdir='$(OUTDIR)'" scripts/plot-populations.gp
 
 plotcrossections:
+	@mkdir -p out
 	gnuplot scripts/plot-cross-sections.gp
 
 showplots: getid
 	eog "$(OUTDIR)/"*.png 2> /dev/null &
+
+cherrypick: getid
+	@echo -n "Cherry-picking data..."
+	@scripts/cherry-pick-data.sh $(run_id)
+	@echo "done!"
 
 # Helpers
 setid: FORCE
@@ -69,7 +77,7 @@ setid: FORCE
 	@echo "Outdata in: $(OUTDIR)/"
 
 getid: FORCE
-	$(eval run_id := $(shell ls out | tail -n 1))
+	$(eval run_id := $(shell ls -t out | head -n 1))
 	$(eval OUTDIR := out/$(run_id))
 	$(eval OUTFILE 	:= 	$(OUTDIR)/simulation.out)
 	$(eval CMD		:=	./runner < $(INFILE) > $(OUTFILE))

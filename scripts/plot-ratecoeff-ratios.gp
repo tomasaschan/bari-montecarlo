@@ -2,7 +2,7 @@
 
 reset
 set terminal pngcairo enhanced
-set output 'ratecoeff-ratios.png'
+set output 'ratecoeff-ratios'.ext
 
 p = 50e-3
 tfin = 20e-9

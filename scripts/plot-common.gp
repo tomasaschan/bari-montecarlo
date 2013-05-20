@@ -1,7 +1,10 @@
 reset
 set terminal pngcairo enhanced #size 40cm,25cm
+ext = '.png'
+#set terminal epslatex color size 7cm,5cm solid
+#ext = '.tex'
 
-srcdir = '../'.srcdir.'/'
+srcdir = '../development/'.srcdir.'/'
 
 infile   = srcdir."input.in"
 datafile = srcdir."simulation.out"
@@ -15,4 +18,4 @@ pressurettitle = "Pressure: ".gprintf("%.1s %c",p)."Torr"
 
 rundatatitle = energytitle.",  ".timetitle.",  ".pressurettitle
 
-set title rundatatitle
+#set title rundatatitle

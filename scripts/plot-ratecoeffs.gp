@@ -1,22 +1,29 @@
-load 'plot-common.gp'
+load 'scripts/plot-common.gp'
 
-set output srcdir.'ratecoeffs.png'
 
-set xlabel "Time [ns]"
-set ylabel "Rate coefficient"
+set output srcdir.'ratecoeffs'.ext
+set termoption dashed
+
+set xlabel "Time $\\left[\\si{\\nano\\second}\\right]$"
+set ylabel "Rate coefficients" # $\\left[\\si{\\centi\\meter\\cubed\\per\\second}\\right]$"
+set y2label "Ratio" rotate by -90
 #set yrange [5e-1:1e5]
 
-set logscale y
+#set logscale y
 set format x "%.0s"
 set format y "%.0te%T"
 set grid 
 
-set ytics nomirror
+set ytics nomirror 2e-9
 set xtics nomirror
 
-set key bottom right
+set y2tics nomirror tc rgb "green"
+
+set key outside above 
 
 plot '<grep '.datafile.' -e rate' \
-        u 2:3 w lines lc rgb "blue" title 'Ionization' , \
-    ''  u 2:4 w lines lc rgb "red" title 'N2+(b) excitation' , \
-    ''  u 2:5 w lines lc rgb "green" title 'N2+(c) excitation'
+        u 2:4 w lines lt 1 lc rgb "red" title 'N2+(b)', \
+    ''  u 2:5 w lines lt 1 lc rgb "black" title 'N2+(c)', \
+    ''  u 2:($5/$4) axes x1y2 w lines lt 2 lc rgb "green" title 'Ratio' 
+    #   u 2:3 w lines lt 1 lc rgb "blue" title 'Ionization' , \
+ 

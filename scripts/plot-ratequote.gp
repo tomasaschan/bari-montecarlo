@@ -1,4 +1,4 @@
-load 'plot-common.gp'
+load 'scripts/plot-common.gp'
 set output srcdir.'ratequote.png'
 
 

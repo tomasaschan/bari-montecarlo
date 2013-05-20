@@ -1,5 +1,5 @@
 load 'plot-common.gp'
-set output srcdir.'/eedf.png'
+set output srcdir.'/eedf'.ext
 
 #set logscale y
 set logscale y
