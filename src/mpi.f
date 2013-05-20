@@ -1,7 +1,12 @@
-      module mpi
+      module mpimc
         use precision, only : rkind, mpi_rkind, lkind, mpi_lkind, ikind, mpi_ikind
 
-        integer rnk, nproc, ierr, comm
+        implicit none
+
+        integer, public :: rnk, nproc
+        integer ierr, comm
+
+        public :: init_mpi, barrier, share_data, reduce_bins, finalize_mpi, wtime
 
       contains
 
@@ -122,4 +127,4 @@
           wtime =  MPI_Wtime()
         end function wtime
 
-      end module mpi
+      end module mpimc

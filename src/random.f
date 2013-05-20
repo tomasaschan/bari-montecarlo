@@ -30,7 +30,7 @@
           ! rapidly (increments every 1e-7 seconds) and use that as an
           ! argument to srand()
         
-          use mpi
+          use mpimc
           implicit none
           
           integer t

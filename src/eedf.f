@@ -29,7 +29,7 @@
         end subroutine init_eedfbins
 
         subroutine calculate_totals()
-          use mpi, only : rnk, reduce_bins
+          use mpimc, only : rnk, reduce_bins
           use physics, only : dt
           implicit none
 
@@ -45,23 +45,25 @@
 
 
           ! calls mpi_reduce
-          call reduce_bins(eedfbins,eedfsum,Needfbins,Ntimes)
+          call reduce_bins(eedfbins,eedfsum,Needfbins,Ntimes+1)
 
           if (rnk.eq.0) then
             do it=0,Ntimes
               ! output number of electrons at e0
               write(*,'((A),2(E15.4))') "e0(t)   ", it*dt, eedfsum(Needfbins,it)
 
+              ! normalize entire eedf to 1
+              eedfsum(:,it) = eedfsum(:,it)/sum(eedfsum(:,it))
+
               ! normalize to f(e) according to paper
               do ie=1,Needfbins
                 eedfsum(ie,it) = normalize(ie*de, eedfsum(ie,it))
               end do
-
-              ! normalize entire eedf to 1
-              eedfsum(:,it) = eedfsum(:,it)/sum(eedfsum(:,it))
             end do
             ! carry over to original variable, to make sure that the correct values are always used
             eedfbins = eedfsum
+
+
           end if 
 
 
@@ -74,14 +76,14 @@
           real(rkind) e, N, normalize
 
           real(rkind), parameter :: pi = 3.14159265358979323846264338327950288419716
-          real(rkind), save :: K = 1/(4*pi)*(me/2)**(3/2)
+          real(rkind), save :: K = 1 !/(4*pi)*(me/2)**(3/2)
 
           normalize = N * K * 1/(de*sqrt(e))
 
         end function normalize
 
         subroutine print_eedf(dt, tfin)
-          use mpi, only : rnk
+          use mpimc, only : rnk
           implicit none
 
           integer it, i!, ip
@@ -102,7 +104,7 @@
         end subroutine print_eedf
 
         subroutine cleanup_histogram()
-          use mpi, only : rnk
+          use mpimc, only : rnk
           implicit none
           deallocate(eedfbins)
 

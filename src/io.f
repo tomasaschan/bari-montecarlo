@@ -1,5 +1,6 @@
       module io
         use precision
+        use mpimc, only : rnk, nproc
 
         integer NDataFiles
         
@@ -9,10 +10,11 @@
         real(rkind), allocatable :: e0raw(:), e1raw(:)
         integer(ikind), allocatable :: productsraw(:)
 
+        character(len=*), parameter, public :: paramformat = '((A30),(Es14.3),(A8))'
+
       contains
 
       subroutine read_program_input(Nruns, tfin, dt, e0, p)
-        use mpi
 
         implicit none
 
@@ -35,9 +37,6 @@
         if (NRunsreal .gt. huge(lkind)) then
           print *, "# WARNING: overflow in input N - lower the number of simulated particles!"
         end if
-
-        write(*,920), e0, tfin, p
-        write(*,960), float(Nruns), dt, nproc
 
         ! first pass over data files: count line numbers
         do i=1, NDataFiles
@@ -64,9 +63,7 @@
 
 
 
-920   format('# e0: ', Es8.1, ', tfin: ', Es8.1, ', p: ', Es8.1)
 930   format("# Reading cross-section data from ", A)
-960   format('# Simulated particles: ', Es8.1, ', time step: ', Es8.1, ", number of processes: ", I0)
       end subroutine read_program_input
 
       subroutine clean_up_io()
