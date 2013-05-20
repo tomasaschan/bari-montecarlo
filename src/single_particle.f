@@ -86,10 +86,10 @@
 
         subroutine collect(tidx, head)
           use eedf, only : eedfbins, Needfbins, de
-
           implicit none
 
           integer i, idx, tidx, head
+
 
           do i=1, head
             idx = int(es(i)/de)
@@ -98,7 +98,6 @@
             end if
             eedfbins(idx, tidx) = eedfbins(idx, tidx) + 1
           enddo
-
         end subroutine collect
 
       end module single_particle

@@ -1,9 +1,9 @@
       program run_simulation
         use precision
 
-        use mpi, only : rnk, nproc, init_mpi, barrier, share_data, finalize_mpi, wtime
-        use io, only : NDataFiles, read_program_input, clean_up_io
-        use physics, only : p, init_physics, NCollProc, cs, cs_min, cs_max, products, dt, tfin
+        use mpimc, only : rnk, nproc, init_mpi, barrier, share_data, finalize_mpi, wtime
+        use io, only : NDataFiles, read_program_input, clean_up_io, paramformat
+        use physics, only : p, init_physics, NCollProc, cs, cs_min, cs_max, products, dt, tfin, n
         use interpolation, only : cs, nri, init_interpolation, interpolate, clean_up_interp
         use random, only : seed_rand_0
         use single_particle, only : onepart, e0
@@ -56,6 +56,13 @@
 
           ! initialize physics module
           call init_physics()
+          if (rnk.eq.0) then
+            write(*,paramformat) "# Initial energy", e0, "eV"
+            write(*,paramformat) "# End time", tfin, "s"
+            write(*,paramformat) "# Time step", dt, "s"
+            write(*,paramformat) "# Gas pressure", p, "Torr"
+            write(*,paramformat) "# Gas density", n*1e-6, "cm^-3"
+          end if
 
           ! seed pseudo-random number generator
           call seed_rand_0()
