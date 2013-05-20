@@ -38,13 +38,13 @@
 
           do it = 0, Ntimes
             t = min(dt*it,tfin)
-            write(*,'(A,4(E15.8))'), 'rate', t, k(it,:)!/k(1,:)
+            write(*,'(A,4(E15.8))'), 'rate', t, k(it,:)*1e6 ! convert to cm^3/s
           end do
         end subroutine print_ratecoeffs
 
         subroutine calculate_ratecoeffs(it)
           use eedf, only : Needfbins, de
-          use physics, only : NCollProc, cross_section, me
+          use physics, only : NCollProc, cross_section, me, e
 
           implicit none
 
@@ -54,7 +54,8 @@
 
           integer ip, ie
 
-          propconst = 1/sqrt(2*me)*de !/(16*pi)
+          ! This puts k in m^3/s
+          propconst = 1/sqrt(2*me)*de*sqrt(e)
 
           ! calculate rate coefficient for process i, and put it in k(i)
           do ip=1,int(NCollProc)
