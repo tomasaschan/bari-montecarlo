@@ -94,7 +94,7 @@ $(BINDIR):
 
 clean:
 	@echo -n "Cleaning..."
-	@rm -rf $(BINDIR) *.mod
+	@rm -rf $(BINDIR) *.mod runner
 	@echo "done!"
 
 cleanout:
