@@ -17,3 +17,5 @@ out/*
 # Scratching
 scratch/*
 quicktest.f
+
+*.sublime-*
