@@ -1,10 +1,9 @@
       program run_simulation
-        use precision
+        use, intrinsic :: iso_fortran_env, only : REAL64, INT16, INT32, INT64
 
-        use mpimc, only : rnk, nproc, init_mpi, barrier, share_data, finalize_mpi, wtime
         use io, only : NDataFiles, read_program_input, clean_up_io, paramformat
-        use physics, only : p, init_physics, NCollProc, cs, cs_min, cs_max, products, dt, tfin, n
-        use interpolation, only : cs, nri, init_interpolation, interpolate, clean_up_interp
+        use physics, only : p, init_physics, NCollProc, dt, tfin, n
+        use interpolation, only : nri, init_interpolation, interpolate, clean_up_interp
         use random, only : seed_rand_0
         use single_particle, only : onepart, e0
         use eedf, only : init_eedfbins, Ntimes, calculate_totals, print_eedf
@@ -13,42 +12,30 @@
 
         implicit none
 
-910   format('# ', a16, F12.2, ' ms')
 920   format('# ', a16, F8.2, ' s')
         ! VARIABLE DECLARATIONS       
-        integer(lkind) Nruns, i
-        double precision :: t_init, t_sim, t_hist, t_all
+        integer(INT64) Nruns, i
+        integer :: clock_start, clock_end, clock_rate
         !
 
         ! INITIALIZATION
 
-          ! initialize mpi
-          call init_mpi()
+          ! start timer
+          call system_clock(count_rate=clock_rate)
+          call system_clock(count=clock_start)
 
-          ! start init and all timers
-          call barrier()
-          t_init = wtime()
-          t_all = wtime()
+          ! get input from stdin        
+          call read_program_input(Nruns, tfin, dt, e0, p)
+          ! initialize e vector of interpolation
+          call init_interpolation()
 
-          ! master thread: read indata and interpolate cross-sections
-          if (rnk.eq.0) then
-            ! get input from stdin        
-            call read_program_input(Nruns, tfin, dt, e0, p)
-            ! initialize e vector of interpolation
-            call init_interpolation()
+          NCollProc = NDataFiles
 
-            NCollProc = NDataFiles
-
-            do i=1,NCollProc
-              call interpolate(i)
-            end do
-            ! clean up allocated memory
-            call clean_up_io()
-          end if
-
-          ! share indata and interpolations between all processes
-          
-          call share_data(Nruns,tfin,dt,e0,p,nri,NCollProc,cs,cs_min,cs_max,products)
+          do i=1,NCollProc
+            call interpolate(i)
+          end do
+          ! clean up allocated memory
+          call clean_up_io()
 
           ! allocate space for histogram, initialize to zero
           Ntimes = int(ceiling(tfin/dt))
@@ -56,85 +43,45 @@
 
           ! initialize physics module
           call init_physics()
-          if (rnk.eq.0) then
-            write(*,paramformat) "# Initial energy", e0, "eV"
-            write(*,paramformat) "# End time", tfin, "s"
-            write(*,paramformat) "# Time step", dt, "s"
-            write(*,paramformat) "# Gas pressure", p, "Torr"
-            write(*,paramformat) "# Gas density", n*1e-6, "cm^-3"
-          end if
+
+          write(*,paramformat) "# Initial energy", e0, "eV   "
+          write(*,paramformat) "# End time", tfin*1e9, "ns   "
+          write(*,paramformat) "# Time step", dt*1e9, "ns   "
+          write(*,paramformat) "# Gas pressure", p, "Torr "
+          write(*,paramformat) "# Gas density", n*1e-6, "cm^-3"
 
           ! seed pseudo-random number generator
           call seed_rand_0()
 
-          ! stop init timer
-          call barrier()
-          if (rnk.eq.0) then
-            t_init = wtime() - t_init
-            write(*,910), 'Initialization', t_init*1000.0
-          end if
-
         ! SIMULATION
 
-          ! start simulation timer
-          call barrier()
-          if (rnk.eq.0) then
-            t_sim = wtime()
-          end if
-
           ! split work on all threads
-          do i=1, Nruns/nproc
+          do i=1, Nruns
             call onepart()
           end do
           
-          ! master thread: run remaining, if Nruns/nproc is not even
-          if (rnk.eq.0) then
-            do i=1, Nruns-nproc*(Nruns/nproc)
-              call onepart()
-            end do
-          end if
-
-          ! stop simulation timer
-          call barrier()
-          if (rnk.eq.0) then
-            t_sim = wtime() - t_sim
-            write(*,920), 'Simulation', t_sim
-          end if
-
         ! POST PROCESSING
-          ! start postprocessing timer
-          call barrier()
-          t_hist = wtime()
 
           ! summarize eedf
           call calculate_totals()
 
-          if (rnk.eq.0) then
-            ! print eedf
-            call print_eedf(dt, tfin)
+          call print_eedf(dt, tfin)
 
-            ! calculate rate coefficients
-            call calculate_ratecoeffs_evolution()
-            call print_ratecoeffs()
+          ! calculate rate coefficients
+          call calculate_ratecoeffs_evolution()
+          call print_ratecoeffs()
 
-            call calculate_pops()
-            call print_pops()
+          call calculate_pops()
+          call print_pops()
 
-            call clean_up_ratecoeffs()
-            call clean_up_pops()
-          end if
+          call clean_up_ratecoeffs()
+          call clean_up_pops()
 
-          ! stop postprocessing and all timers
-          call barrier()
-          if (rnk.eq.0) then
-            t_hist = wtime() - t_hist
-            t_all = wtime() - t_all
-            write(*,910) 'Postprocessing', t_hist*1000.0
-            write(*,920) 'Everything', t_all
-          end if
+          ! stop timer
+          call system_clock(count=clock_end)
+          write(*,920) 'Everything', (clock_end-clock_start)/real(clock_rate,REAL64)
 
         ! CLEAN UP
           !  deallocate(bins)g
           call clean_up_interp()
-          call finalize_mpi()
         end program run_simulation

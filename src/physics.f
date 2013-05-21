@@ -1,23 +1,23 @@
       module physics
-        use precision
+        use, intrinsic :: iso_fortran_env, only : REAL64, INT16, INT32, INT64
         private
         !use interpolation
 
         ! nitrogen gas pressure and number density
-        real(rkind), public :: p, n
+        real(REAL64), public :: p, n
         ! number of interpolation points and collision processes
-        integer(lkind), public :: Ncs, NCollProc
+        integer(INT64), public :: Ncs, NCollProc
         ! cross section interpolations and boundary values
         ! the lower boundary is also the energy loss
-        real(rkind), allocatable, public :: cs(:,:), cs_min(:), cs_max(:)
+        real(REAL64), allocatable, public :: cs(:,:), cs_min(:), cs_max(:)
         ! number of electrons created in processes
-        integer(ikind), allocatable, public :: products(:)
+        integer, allocatable, public :: products(:)
         ! total collision frequency; constant through simulation
-        real(rkind), public :: total_collision_frequency
+        real(REAL64), public :: total_collision_frequency
 
-        real(rkind), public :: me, e
+        real(REAL64), public :: me, e
         parameter(me=9.11E-31,e = 1.602176E-19)
-        real(rkind), public :: dt, tfin
+        real(REAL64), public :: dt, tfin
 
 
         public :: init_physics
@@ -31,12 +31,12 @@
         subroutine init_physics()
           implicit none
 
-          integer(lkind) ie
+          integer(INT64) ie
 
-          real(rkind) :: cfreqs(Ncs)
-          real(rkind), parameter   :: T = 298.0
-          real(rkind), parameter   :: kB = 1.3806488e-23
-          real(rkind), parameter :: Torr2Pa = 101325/760
+          real(REAL64) :: cfreqs(Ncs)
+          real(REAL64), parameter   :: T = 298.0
+          real(REAL64), parameter   :: kB = 1.3806488e-23
+          real(REAL64), parameter :: Torr2Pa = 101325/760
           
 
           ! calculate nitrogen number density from gas pressure
@@ -53,7 +53,7 @@
           use random
 
           implicit none
-          real(rkind) :: collision_time, r
+          real(REAL64) :: collision_time, r
 
           r = random_real()
           collision_time = -log(r) / total_collision_frequency
@@ -63,7 +63,7 @@
           implicit none
 
           integer process
-          real(rkind) eV, collision_frequency
+          real(REAL64) eV, collision_frequency
 
           collision_frequency = velocity(eV)*n*cross_section(eV, process)
         end function collision_frequency
@@ -72,11 +72,11 @@
           implicit none
 
           ! Input argument and return value
-          real(rkind) eV, cross_section
+          real(REAL64) eV, cross_section
           integer process
 
           ! Intermediates
-          real(rkind) dx
+          real(REAL64) dx
           integer idx
 
           if (eV .lt. cs_min(process) .or. eV .gt. cs_max(process)) then
@@ -95,9 +95,9 @@
           implicit none
           ! in arguments
           integer N, idx, head, newp_dt
-          real(rkind) es(N), tcs(N)
+          real(REAL64) es(N), tcs(N)
           ! other variables
-          real(rkind) r, cfsum
+          real(REAL64) r, cfsum
           integer ip
 
           ! select a collision process
@@ -145,7 +145,7 @@
           use random
 
           implicit none
-          real(rkind) r, ea, secondary_energy, E
+          real(REAL64) r, ea, secondary_energy, E
           parameter(E=13)
           r = random_real()
           secondary_energy = E*tan(atan(ea/E)*r)    
@@ -156,7 +156,7 @@
           ! energy eV
           
           implicit none
-          real(rkind) eV, velocity
+          real(REAL64) eV, velocity
 
           velocity = sqrt(2*eV*e/me)
         end function velocity
@@ -170,7 +170,7 @@
           ! |v| = sqrt(v(1)^2+v(2)^2+v(3)^2)
           
           implicit none
-          real(rkind) v(3), energy
+          real(REAL64) v(3), energy
           
           energy = .5*me*(v(1)*v(1) + v(2)*v(2) + v(3)*v(3)) / e
         end function energy

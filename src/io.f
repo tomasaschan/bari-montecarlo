@@ -1,14 +1,13 @@
       module io
-        use precision
-        use mpimc, only : rnk, nproc
+        use, intrinsic :: iso_fortran_env, only : REAL64, INT16, INT32, INT64
 
         integer NDataFiles
         
         character(len=25), allocatable :: fnames(:)
         integer, allocatable :: nrd(:)
-        real(rkind), allocatable :: raw(:,:,:)
-        real(rkind), allocatable :: e0raw(:), e1raw(:)
-        integer(ikind), allocatable :: productsraw(:)
+        real(REAL64), allocatable :: raw(:,:,:)
+        real(REAL64), allocatable :: e0raw(:), e1raw(:)
+        integer, allocatable :: productsraw(:)
 
         character(len=*), parameter, public :: paramformat = '((A30),(Es14.3),(A8))'
 
@@ -20,8 +19,8 @@
 
         integer f, row, col, i
         parameter(f=15)
-        integer(lkind) Nruns
-        real(rkind) tfin, dt, e0, p, NRunsreal
+        integer(INT64) Nruns
+        real(REAL64) tfin, dt, e0, p, NRunsreal
 
         read *, NRunsreal, tfin, dt, e0, p, NDataFiles
         
@@ -34,7 +33,7 @@
         read *, fnames
         Nruns = int(NRunsreal)
 
-        if (NRunsreal .gt. huge(lkind)) then
+        if (NRunsreal .gt. huge(NRunsreal)) then
           print *, "# WARNING: overflow in input N - lower the number of simulated particles!"
         end if
 
@@ -97,14 +96,6 @@
 
         close(20)
       end function lines_in_file
-
-      subroutine here()
-        use mpi
-
-        implicit none
-
-        print *, "#", rnk, "here"
-      end subroutine here
 
       subroutine check_fnames()
         implicit none

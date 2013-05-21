@@ -1,11 +1,11 @@
       module single_particle
-        use precision
+        use, intrinsic :: iso_fortran_env, only : REAL64, INT16, INT32, INT64
         
         ! Some parameters for simulation
         integer head, colls_dt, tidx
         integer Nspace
         parameter(Nspace=100)
-        real(rkind) es(Nspace), tcs(Nspace), e0
+        real(REAL64) es(Nspace), tcs(Nspace), e0
 
       contains
 
@@ -14,10 +14,10 @@
           use physics, only : dt, tfin
           implicit none
 
-          real(rkind) t
+          real(REAL64) t
 
           ! Initialize simulation
-          t = 0.0_rkind
+          t = 0.0_REAL64
           tidx = 1
           head = 1
           call init_arrays(Nspace, es, e0, tcs)
@@ -52,7 +52,7 @@
           implicit none
           
           integer N
-          real(rkind) es(N), tcs(N), e0
+          real(REAL64) es(N), tcs(N), e0
 
           es = 0.0D0
           tcs = 0.0D0
@@ -66,7 +66,7 @@
 
           implicit none
 
-          real(rkind) dt, dtp
+          real(REAL64) dt, dtp
           integer i, head
 
           do i=1, head

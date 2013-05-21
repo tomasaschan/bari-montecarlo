@@ -1,17 +1,17 @@
       module populations
-        use precision
+        use, intrinsic :: iso_fortran_env, only : REAL64, INT16, INT32, INT64
         use eedf, only : Ntimes
         use physics, only : NCollProc, n
 
         implicit none
         private
 
-        real(rkind), parameter :: A(2) = (/ 2.74e7, 1.53e7 /)     ! (Ac,Ab), s^-1
-        real(rkind), parameter :: Q(2) = (/ 3.67e-17, 8.84e-16 /) ! (Qc, Qb), s^-1 m^3
+        real(REAL64), parameter :: A(2) = (/ 2.74e7, 1.53e7 /)     ! (Ac,Ab), s^-1
+        real(REAL64), parameter :: Q(2) = (/ 3.67e-17, 8.84e-16 /) ! (Qc, Qb), s^-1 m^3
 
-        real(rkind), allocatable, public :: pops(:,:)
+        real(REAL64), allocatable, public :: pops(:,:)
         integer, parameter      :: Nsteps = 1000
-        real(rkind) h
+        real(REAL64) h
 
         public :: calculate_pops, print_pops, clean_up_pops
 
@@ -23,13 +23,13 @@
           implicit none
 
           ! Runge-Kutta parameters
-          real(rkind)             :: k1(2), k2(2), k3(2), k4(2)
+          real(REAL64)             :: k1(2), k2(2), k3(2), k4(2)
           ! time variables
-          real(rkind)             :: t
+          real(REAL64)             :: t
           integer it
           
           ! select step size
-          h = tfin/real(Nsteps, rkind)
+          h = tfin/real(Nsteps, REAL64)
 
           allocate(pops(0:Nsteps+1, 2))
 
@@ -66,17 +66,17 @@
           use ratecoeffs, only : ratecoeff
           implicit none 
 
-          real(rkind), intent(in) :: t, pops(2)
+          real(REAL64), intent(in) :: t, pops(2)
           ! return values
-          real(rkind)             :: f(2)
+          real(REAL64)             :: f(2)
           
           f = ne(t)*(/ ratecoeff(t, 2), ratecoeff(t, 3) /)*n - (Q*n+A)*pops
         end function f
 
         function ne(t)
           implicit none
-          real(rkind), intent(in) :: t
-          real(rkind) ne
+          real(REAL64), intent(in) :: t
+          real(REAL64) ne
           
           ne = 1.0
         end function ne

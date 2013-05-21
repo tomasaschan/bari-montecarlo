@@ -1,8 +1,8 @@
       module interpolation
-        use precision
+        use, intrinsic :: iso_fortran_env, only : REAL64, INT16, INT32, INT64
         use physics, only : cs, cs_min, cs_max, Ncs, NCollProc, products
 
-        integer(lkind) nri
+        integer(INT64) nri
         parameter(nri=int(1e5))
 
       contains
@@ -32,13 +32,13 @@
           implicit none
 
           ! pointers for both series
-          integer(lkind) ip, id, ii, i
+          integer(INT64) ip, id, ii, i
           ! boundaries for the desired interval
-          real(rkind) e0, e1
+          real(REAL64) e0, e1
           ! shortcuts to the interpolation and data ranges
-          real(rkind) ei(nri), ed(nrd(ip)), csd(nrd(ip))
+          real(REAL64) ei(nri), ed(nrd(ip)), csd(nrd(ip))
           ! variables for interpolation
-          real(rkind) k, de, emin, emax
+          real(REAL64) k, de, emin, emax
 
           ed = raw(1:nrd(ip),1,ip)
           csd = raw(1:nrd(ip),2,ip)

@@ -1,10 +1,10 @@
       module ratecoeffs
-        use precision
+        use, intrinsic :: iso_fortran_env, only : REAL64, INT16, INT32, INT64
         private
 
-        real(rkind), allocatable, public :: k(:,:)
+        real(REAL64), allocatable, public :: k(:,:)
 
-        real(rkind) tstep, endt
+        real(REAL64) tstep, endt
 
         public :: calculate_ratecoeffs_evolution, ratecoeff
         public :: print_ratecoeffs
@@ -33,7 +33,7 @@
           
           implicit none
 
-          real(rkind) t
+          real(REAL64) t
           integer :: it
 
           do it = 0, Ntimes
@@ -49,8 +49,8 @@
           implicit none
 
           integer, intent(in) :: it
-          real(rkind), parameter :: pi = 3.14159265358979323846264338327950288419716
-          real(rkind), save :: propconst
+          real(REAL64), parameter :: pi = 3.14159265358979323846264338327950288419716
+          real(REAL64), save :: propconst
 
           integer ip, ie
 
@@ -69,11 +69,11 @@
           use eedf, only : Ntimes
           implicit none
           
-          real(rkind), intent(in) :: t
+          real(REAL64), intent(in) :: t
           integer, intent(in) :: ip
 
           integer it
-          real(rkind) delta, ratecoeff, grad
+          real(REAL64) delta, ratecoeff, grad
 
           it = int(t/dt)
           delta = t - it*dt
@@ -93,7 +93,7 @@
           implicit none
 
           integer, intent(in) :: ie, ip, it
-          real(rkind) :: integrand
+          real(REAL64) :: integrand
 
           integrand = (ie*de)*eedfbins(ie,it)*cross_section(ie*de,ip)
                       ! e        f(e)               sigma(e)         

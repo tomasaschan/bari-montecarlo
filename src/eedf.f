@@ -1,14 +1,14 @@
       module eedf
-        use precision
+        use, intrinsic :: iso_fortran_env, only : REAL64, INT16, INT32, INT64
         private
 
-        real(rkind), allocatable :: eedfsum(:,:), totsum(:)
-        real(rkind), allocatable :: norm_factor(:)
-        real(rkind), allocatable, public :: eedfbins(:,:)
+        real(REAL64), allocatable :: eedfsum(:,:), totsum(:)
+        real(REAL64), allocatable :: norm_factor(:)
+        real(REAL64), allocatable, public :: eedfbins(:,:)
 
         integer, parameter, public    :: Needfbins = int(5e2)
         integer, public :: Ntimes
-        real(rkind), public :: de
+        real(REAL64), public :: de
 
 
         public :: init_eedfbins
@@ -21,7 +21,7 @@
         subroutine init_eedfbins(e0)
           implicit none
 
-          real(rkind) e0
+          real(REAL64) e0
 
           allocate(eedfbins(Needfbins,0:Ntimes))
           de = e0/Needfbins
@@ -29,91 +29,59 @@
         end subroutine init_eedfbins
 
         subroutine calculate_totals()
-          use mpimc, only : rnk, reduce_bins
           use physics, only : dt
           implicit none
 
           integer ie, it
           
-          ! reduce results to histogram
-          ! master thread: allocate space for reduction
-          if (rnk.eq.0) then
-            allocate(eedfsum(Needfbins, 0:Ntimes))
-            allocate(totsum(Ntimes))
-            allocate(norm_factor(Ntimes))
-          end if
+          do it=0,Ntimes
+            ! output number of electrons at e0
+            write(*,'((A),2(E15.4))') "e0(t)   ", it*dt, eedfbins(Needfbins,it)
 
+            ! normalize entire eedf to 1
+            eedfbins(:,it) = eedfbins(:,it)/sum(eedfbins(:,it))
 
-          ! calls mpi_reduce
-          call reduce_bins(eedfbins,eedfsum,Needfbins,Ntimes+1)
-
-          if (rnk.eq.0) then
-            do it=0,Ntimes
-              ! output number of electrons at e0
-              write(*,'((A),2(E15.4))') "e0(t)   ", it*dt, eedfsum(Needfbins,it)
-
-              ! normalize entire eedf to 1
-              eedfsum(:,it) = eedfsum(:,it)/sum(eedfsum(:,it))
-
-              ! normalize to f(e) according to paper
-              do ie=1,Needfbins
-                eedfsum(ie,it) = normalize(ie*de, eedfsum(ie,it))
-              end do
+            ! normalize to f(e) according to paper
+            do ie=1,Needfbins
+              eedfbins(ie,it) = normalize(ie*de, eedfbins(ie,it))
             end do
-            ! carry over to original variable, to make sure that the correct values are always used
-            eedfbins = eedfsum
-
-
-          end if 
-
-
+          end do
         end subroutine calculate_totals
 
         function normalize(e, N)
           use physics, only : me
           implicit none
 
-          real(rkind) e, N, normalize
+          real(REAL64) e, N, normalize
 
-          real(rkind), parameter :: pi = 3.14159265358979323846264338327950288419716
-          real(rkind), save :: K = 1 !/(4*pi)*(me/2)**(3/2)
+          real(REAL64), parameter :: pi = 3.14159265358979323846264338327950288419716
+          real(REAL64), save :: K = 1 !/(4*pi)*(me/2)**(3/2)
 
           normalize = N * K * 1/(de*sqrt(e))
 
         end function normalize
 
         subroutine print_eedf(dt, tfin)
-          use mpimc, only : rnk
           implicit none
 
           integer it, i!, ip
           ! variables for output
-          real(rkind) t, e, p, dt, tfin
+          real(REAL64) t, e, p, dt, tfin
 
-          if (rnk.eq.0) then
-            do it=0, Ntimes
-              do i=1, Needfbins
-                t = min(dt*it, tfin)
-                e = i*de
-                p = eedfsum(i,it)
-                write(*,'(A,3(E15.8))') 'eedf', t,e,p !, (/ (cross_section(e, ip), ip=1, int(NCollProc)) /), (/ (e*p*cross_section(e,ip), ip=1, int(NCollProc)) /)
-              end do
-              write (*,*) " "
+          do it=0, Ntimes
+            do i=1, Needfbins
+              t = min(dt*it, tfin)
+              e = i*de
+              p = eedfbins(i,it)
+              write(*,'(A,3(E15.8))') 'eedf', t,e,p !, (/ (cross_section(e, ip), ip=1, int(NCollProc)) /), (/ (e*p*cross_section(e,ip), ip=1, int(NCollProc)) /)
             end do
-          end if
+            write (*,*) " "
+          end do
         end subroutine print_eedf
 
         subroutine cleanup_histogram()
-          use mpimc, only : rnk
           implicit none
           deallocate(eedfbins)
-
-          if (rnk.eq.0) then
-
-            deallocate(totsum)
-            deallocate(norm_factor)
-            deallocate(eedfsum)
-          end if
         end subroutine
 
       end module eedf
