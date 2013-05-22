@@ -6,16 +6,30 @@
         implicit none
         private
 
-        real(REAL64), parameter :: A(2) = (/ 2.74e7, 1.53e7 /)     ! (Ac,Ab), s^-1
-        real(REAL64), parameter :: Q(2) = (/ 3.67e-17, 8.84e-16 /) ! (Qc, Qb), s^-1 m^3
+        real(REAL64), allocatable :: A(:)
+        real(REAL64), allocatable :: Q(:)
 
         real(REAL64), allocatable, public :: pops(:,:)
         integer, parameter      :: Nsteps = 1000
         real(REAL64) h
 
-        public :: calculate_pops, print_pops, clean_up_pops
+        integer, public :: Npops
+
+        public :: init_pops, calculate_pops, print_pops, clean_up_pops
 
       contains
+
+        subroutine init_pops()
+          use io, only : Araw, Qraw
+          implicit none
+          
+          allocate(A(Npops))
+          allocate(Q(Npops))
+
+          A = Araw
+          Q = Qraw*1e-6 ! convert to m^3 s^-1 (was cm^3 s^-1)
+
+        end subroutine init_pops
 
         subroutine calculate_pops()
           use physics, only : tfin
@@ -23,7 +37,7 @@
           implicit none
 
           ! Runge-Kutta parameters
-          real(REAL64)             :: k1(2), k2(2), k3(2), k4(2)
+          real(REAL64)             :: k1(Npops), k2(Npops), k3(Npops), k4(Npops)
           ! time variables
           real(REAL64)             :: t
           integer it
@@ -31,7 +45,7 @@
           ! select step size
           h = tfin/real(Nsteps, REAL64)
 
-          allocate(pops(0:Nsteps+1, 2))
+          allocate(pops(0:Nsteps+1, Npops))
 
           pops = 0.
           t = 0
@@ -74,20 +88,21 @@
           ! return values
           real(REAL64)             :: f(2)
           
-          f = ne(t)*(/ ratecoeff(t, 2), ratecoeff(t, 3) /)*n - (Q*n+A)*pops
+!           f = ne(t)*(/ ratecoeff(t, 2), ratecoeff(t, 3) /)*n - (Q*n+A)*pops
+          f = (/ ratecoeff(t, 2), ratecoeff(t, 3) /)*n - (Q*n+A)*pops
         end function f
 
-        function ne(t)
-          implicit none
-          real(REAL64), intent(in) :: t
-          real(REAL64) ne
+!         function ne(t)
+!           implicit none
+!           real(REAL64), intent(in) :: t
+!           real(REAL64) ne
           
-          ne = 1.0
-        end function ne
+!           ne = 1.0
+!         end function ne
 
         subroutine clean_up_pops()
           implicit none
-          deallocate(pops)
+          deallocate(pops,A,Q)
         end subroutine clean_up_pops
       end module populations
         

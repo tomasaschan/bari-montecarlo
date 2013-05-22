@@ -1,12 +1,13 @@
       module io
-        use, intrinsic :: iso_fortran_env, only : REAL64, INT16, INT32, INT64
+        use, intrinsic :: iso_fortran_env, only : REAL64, INT16, INT32, INT64, stdout=>output_unit, stdin=>input_unit
+
 
         integer NDataFiles
         
         character(len=25), allocatable :: fnames(:)
         integer, allocatable :: nrd(:)
         real(REAL64), allocatable :: raw(:,:,:)
-        real(REAL64), allocatable :: e0raw(:), e1raw(:)
+        real(REAL64), allocatable :: e0raw(:), e1raw(:), Araw(:), Qraw(:)
         integer, allocatable :: productsraw(:)
 
         character(len=*), parameter, public :: paramformat = '((A),(Es14.3),(A8))'
@@ -15,15 +16,16 @@
 
       contains
 
-        subroutine read_program_input(Nruns, tfin, dt, e0, p)
+        subroutine read_program_input(Nruns, tfin, dt, e0, p, Npops)
 
           implicit none
 
           integer row, col, i
           integer(INT64) Nruns
           real(REAL64) tfin, dt, e0, p, NRunsreal
+          integer Npops
 
-          read *, NRunsreal, tfin, dt, e0, p, NDataFiles
+          read(stdin,*) NRunsreal, tfin, dt, e0, p, NDataFiles, Npops
 
           allocate(fnames(NDataFiles))
           allocate(nrd(NDataFiles))
@@ -31,11 +33,15 @@
           allocate(e1raw(NDataFiles))
           allocate(productsraw(NDataFiles))
 
-          read *, fnames
+          allocate(Araw(Npops), Qraw(Npops))
+
+          read(stdin,*) Araw, Qraw
+
+          read(stdin,*) fnames
           Nruns = int(NRunsreal)
 
           if (NRunsreal .gt. huge(NRunsreal)) then
-            print *, "# WARNING: overflow in input N - lower the number of simulated particles!"
+            write(stdout,*) "# WARNING: overflow in input N - lower the number of simulated particles!"
           end if
 
           ! first pass over data files: count line numbers
