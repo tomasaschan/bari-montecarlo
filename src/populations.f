@@ -52,14 +52,18 @@
         end subroutine calculate_pops
 
         subroutine print_pops()
+          use io, only : pops_f
           implicit none
 
           integer it
 
+          open(pops_f,file='pops.dat')
+
           do it=0, Nsteps
-            write(*,'((A),3(E14.6))') "pops", it*h, pops(it,:)
+            write(pops_f,*) it*h, pops(it,:)
           end do
-          
+
+          close(pops_f)
         end subroutine print_pops
 
         function f(t,pops)

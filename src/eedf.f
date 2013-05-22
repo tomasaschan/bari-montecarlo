@@ -61,22 +61,27 @@
 
         end function normalize
 
-        subroutine print_eedf(dt, tfin)
+        subroutine print_eedf()
+          use physics, only : dt, tfin
+          use io, only : eedf_f
           implicit none
 
-          integer it, i!, ip
+          integer it, i
           ! variables for output
-          real(REAL64) t, e, p, dt, tfin
+          real(REAL64) t, e, p
+
+          open(eedf_f, FILE="eedf.dat")
 
           do it=0, Ntimes
             do i=1, Needfbins
               t = min(dt*it, tfin)
               e = i*de
               p = eedfbins(i,it)
-              write(*,'(A,3(E15.8))') 'eedf', t,e,p !, (/ (cross_section(e, ip), ip=1, int(NCollProc)) /), (/ (e*p*cross_section(e,ip), ip=1, int(NCollProc)) /)
+              write(eedf_f,'(3(E15.8))') t, e, p ! time, energy, probability
             end do
-            write (*,*) " "
           end do
+
+          close(eedf_f)
         end subroutine print_eedf
 
         subroutine cleanup_histogram()

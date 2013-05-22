@@ -30,15 +30,18 @@
         subroutine print_ratecoeffs()
           use eedf, only : Ntimes
           use physics, only : dt, tfin
-          
+          use io, only : rate_f
+
           implicit none
 
           real(REAL64) t
           integer :: it
 
+          open(rate_f, file='rate.dat')
+
           do it = 0, Ntimes
             t = min(dt*it,tfin)
-            write(*,'(A,4(E15.8))'), 'rate', t, k(it,:)*1e6 ! convert to cm^3/s
+            write(rate_f,*), t, k(it,:)*1e6 ! convert to cm^3/s
           end do
         end subroutine print_ratecoeffs
 

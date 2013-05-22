@@ -1,7 +1,7 @@
       program run_simulation
         use, intrinsic :: iso_fortran_env, only : REAL64, INT16, INT32, INT64
 
-        use io, only : NDataFiles, read_program_input, clean_up_io, paramformat
+        use io, only : NDataFiles, read_program_input, clean_up_io, paramformat, padr
         use physics, only : p, init_physics, NCollProc, dt, tfin, n
         use interpolation, only : nri, init_interpolation, interpolate, clean_up_interp
         use random, only : seed_rand_0
@@ -12,7 +12,7 @@
 
         implicit none
 
-920   format('# ', a16, F8.2, ' s')
+920   format('# ', a, F8.2, ' s')
         ! VARIABLE DECLARATIONS       
         integer(INT64) Nruns, i
         integer :: clock_start, clock_end, clock_rate
@@ -44,11 +44,11 @@
           ! initialize physics module
           call init_physics()
 
-          write(*,paramformat) "# Initial energy", e0, "eV   "
-          write(*,paramformat) "# End time", tfin*1e9, "ns   "
-          write(*,paramformat) "# Time step", dt*1e9, "ns   "
-          write(*,paramformat) "# Gas pressure", p, "Torr "
-          write(*,paramformat) "# Gas density", n*1e-6, "cm^-3"
+          write(*,paramformat) padr("# Initial energy", 20), e0, "eV   "
+          write(*,paramformat) padr("# End time", 20), tfin*1e9, "ns   "
+          write(*,paramformat) padr("# Time step", 20), dt*1e9, "ns   "
+          write(*,paramformat) padr("# Gas pressure", 20) , p, "Torr "
+          write(*,paramformat) padr("# Gas density", 20) , n*1e-6, "cm^-3"
 
           ! seed pseudo-random number generator
           call seed_rand_0()
@@ -65,7 +65,7 @@
           ! summarize eedf
           call calculate_totals()
 
-          call print_eedf(dt, tfin)
+          call print_eedf()
 
           ! calculate rate coefficients
           call calculate_ratecoeffs_evolution()
@@ -79,7 +79,7 @@
 
           ! stop timer
           call system_clock(count=clock_end)
-          write(*,920) 'Everything', (clock_end-clock_start)/real(clock_rate,REAL64)
+          write(*,920) 'It took', (clock_end-clock_start)/real(clock_rate,REAL64)
 
         ! CLEAN UP
           !  deallocate(bins)g
