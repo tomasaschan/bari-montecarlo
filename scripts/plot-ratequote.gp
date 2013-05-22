@@ -16,4 +16,4 @@ set xtics nomirror
 
 set key bottom right
 
-plot '<grep '.datafile.' -e rate' u 2:($5/$4) w lines lc rgb "blue" title 'N2+(c) / N2+(b)'
+plot srcdir.'rate.dat' u 1:($2/$3) w lines lc rgb "blue" title 'N2+(c) / N2+(b)'

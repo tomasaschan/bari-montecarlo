@@ -14,8 +14,8 @@ set ztics format "%.0te%T"
 set xyplane .0
 unset key
 
-ts = system("awk '/^eedf/ { print $2 }' ".datafile." | uniq | sort -r")
-thistime(t) = "<awk '/^eedf ".t."/' ".datafile
+ts = system("awk '{ print $1 }' ".srcdir."eedf.dat | uniq | tac")
+thistime(t) = '<awk ''/^ '.t.'/'' '.srcdir.'eedf.dat'
 
-splot for [t in ts] thistime(t) u 3:2:4 w lines notitle # , \
+splot for [t in ts] thistime(t) u 2:1:3 w lines notitle # , \
 #      for [i=20:10:-1] awkcmd(i,7).datafile u 3:2:4 w lines notitle

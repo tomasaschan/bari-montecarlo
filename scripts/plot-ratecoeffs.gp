@@ -21,9 +21,9 @@ set y2tics nomirror tc rgb "green"
 
 set key outside above 
 
-plot '<grep '.datafile.' -e rate' \
-        u 2:4 w lines lt 1 lc rgb "red" title 'N2+(b)', \
-    ''  u 2:5 w lines lt 1 lc rgb "black" title 'N2+(c)', \
-    ''  u 2:($5/$4) axes x1y2 w lines lt 2 lc rgb "green" title 'Ratio' 
+plot srcdir.'rate.dat' \
+        u 1:2 w lines lt 1 lc rgb "red" title 'N2+(b)', \
+    ''  u 1:3 w lines lt 1 lc rgb "black" title 'N2+(c)', \
+    ''  u 1:($2/$3) axes x1y2 w lines lt 2 lc rgb "green" title 'Ratio' 
     #   u 2:3 w lines lt 1 lc rgb "blue" title 'Ionization' , \
  

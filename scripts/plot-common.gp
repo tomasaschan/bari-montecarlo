@@ -4,6 +4,7 @@ ext = '.png'
 #set terminal epslatex color size 7cm,5cm solid
 #ext = '.tex'
 
+#srcdir = '../development/'.srcdir.'/'
 srcdir = '../development/'.srcdir.'/'
 
 infile   = srcdir."input.in"
