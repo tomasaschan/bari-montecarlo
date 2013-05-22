@@ -15,7 +15,7 @@ All the original code in this project is licensed under a modified MIT License:
 >all copies or substantial portions of the Software.
 
 
->* Neither the Software, nor any derivative product, shall not used to operate weapons,
+>* Neither the Software, nor any derivative product, shall be used to operate weapons,
 military nuclear facilities, life support or other mission critical applications
 where human life or property may be at stake or endangered.
 
