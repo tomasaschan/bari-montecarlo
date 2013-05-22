@@ -2,7 +2,7 @@
 FC 			:= 	mpif90
 BINDIR		:=	bin
 VPATH		:=	src
-FFLAGS		:=	-O3 -g -Wall -Warray-bounds -ffixed-line-length-none -fbounds-check -J$(BINDIR) #-I$(BINDIR)
+FFLAGS		:=	-O3 -g -Wall -Warray-bounds -ffree-form -ffixed-line-length-none -fbounds-check -J$(BINDIR) #-I$(BINDIR)
 
 # Information about this run
 INFILE 		:= 	input.in
@@ -12,14 +12,14 @@ INFILE 		:= 	input.in
 # VALGRINDOPTS = --gen-suppressions=all
 
 # All modules
-OBJS		:= 	$(BINDIR)/precision.o $(BINDIR)/mpi.o $(BINDIR)/io.o $(BINDIR)/random.o $(BINDIR)/physics.o $(BINDIR)/interpolation.o $(BINDIR)/eedf.o $(BINDIR)/ratecoeffs.o $(BINDIR)/single_particle.o $(BINDIR)/populations.o 
+OBJS		:= $(BINDIR)/precision.o $(BINDIR)/parameters.o $(BINDIR)/fparser.o $(BINDIR)/mpi.o $(BINDIR)/io.o $(BINDIR)/random.o $(BINDIR)/physics.o $(BINDIR)/interpolation.o $(BINDIR)/eedf.o $(BINDIR)/ratecoeffs.o $(BINDIR)/single_particle.o $(BINDIR)/populations.o 
 
 # Default rule
 all: runner | $(BINDIR)
 
 # Set some make specials
 .SUFFIXES:
-.SUFFIXES: .f .o .mod 
+.SUFFIXES: .f .f90 .o .mod 
 
 .PHONY: setid getid
 
@@ -39,6 +39,7 @@ run: runner | setid outdir
 	@echo -n "Running simulation..."
 	@mpirun -n 1 $(CMD)
 	@echo "done!"
+	@cp *.dat $(OUTDIR)
 	@cat $(OUTFILE) | grep -e \# | sed 's/\# //'
 
 # Processing data
@@ -94,7 +95,7 @@ $(BINDIR):
 
 clean:
 	@echo -n "Cleaning..."
-	@rm -rf $(BINDIR) *.mod runner
+	@rm -rf $(BINDIR) *.mod runner runner.exe
 	@echo "done!"
 
 cleanout:

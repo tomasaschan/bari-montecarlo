@@ -16,7 +16,7 @@
 
       contains
 
-        subroutine read_program_input(Nruns, tfin, dt, e0, p, Npops)
+        subroutine read_program_input(Nruns, tfin, dt, e0, p, Npops, neexpr)
 
           implicit none
 
@@ -24,6 +24,7 @@
           integer(INT64) Nruns
           real(REAL64) tfin, dt, e0, p, NRunsreal
           integer Npops
+          character(len=*) neexpr
 
           read(stdin,*) NRunsreal, tfin, dt, e0, p, NDataFiles, Npops
 
@@ -38,6 +39,10 @@
           read(stdin,*) Araw, Qraw
 
           read(stdin,*) fnames
+          read(stdin,*) neexpr
+
+          write(stdout, *) "neexpr", neexpr
+
           Nruns = int(NRunsreal)
 
           if (NRunsreal .gt. huge(NRunsreal)) then

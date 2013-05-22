@@ -2,6 +2,7 @@
         use, intrinsic :: iso_fortran_env, only : REAL64, INT16, INT32, INT64
         use eedf, only : Ntimes
         use physics, only : NCollProc, n
+        use fparser
 
         implicit none
         private
@@ -12,6 +13,8 @@
         real(REAL64), allocatable, public :: pops(:,:)
         integer, parameter      :: Nsteps = 1000
         real(REAL64) h
+
+        character(len=120), public :: neexpr
 
         integer, public :: Npops
 
@@ -28,6 +31,9 @@
 
           A = Araw
           Q = Qraw*1e-6 ! convert to m^3 s^-1 (was cm^3 s^-1)
+
+          call initf(1)
+          call parsef(1, neexpr, (/ 't' /))
 
         end subroutine init_pops
 
@@ -84,21 +90,16 @@
           use ratecoeffs, only : ratecoeff
           implicit none 
 
-          real(REAL64), intent(in) :: t, pops(2)
+          real(REAL64), intent(in) :: t, pops(Npops)
           ! return values
-          real(REAL64)             :: f(2)
+          real(REAL64)             :: f(Npops)
+          real(REAL64)             :: ne
+          integer ip
           
-!           f = ne(t)*(/ ratecoeff(t, 2), ratecoeff(t, 3) /)*n - (Q*n+A)*pops
-          f = (/ ratecoeff(t, 2), ratecoeff(t, 3) /)*n - (Q*n+A)*pops
-        end function f
+          ne = evalf(1, (/ t /))
 
-!         function ne(t)
-!           implicit none
-!           real(REAL64), intent(in) :: t
-!           real(REAL64) ne
-          
-!           ne = 1.0
-!         end function ne
+          f = ne*(/ (ratecoeff(t, ip),ip=2,Npops+1) /)*n - (Q*n+A)*pops
+        end function f
 
         subroutine clean_up_pops()
           implicit none

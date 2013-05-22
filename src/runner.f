@@ -8,7 +8,7 @@
         use single_particle, only : onepart, e0
         use eedf, only : init_eedfbins, Ntimes, calculate_totals, print_eedf
         use ratecoeffs, only : calculate_ratecoeffs_evolution, print_ratecoeffs, clean_up_ratecoeffs
-        use populations, only : calculate_pops, print_pops, clean_up_pops, init_pops, Npops
+        use populations, only : calculate_pops, print_pops, clean_up_pops, init_pops, Npops, neexpr
 
         implicit none
 
@@ -25,7 +25,7 @@
           call system_clock(count=clock_start)
 
           ! get input from stdin        
-          call read_program_input(Nruns, tfin, dt, e0, p, Npops)
+          call read_program_input(Nruns, tfin, dt, e0, p, Npops, neexpr)
           
           ! initialize cross-section interpolations and population ODE's
           call init_interpolation()
