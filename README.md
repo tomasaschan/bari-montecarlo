@@ -117,4 +117,4 @@ The data is output to three different files:
 
 ## Obtaining the source code
 
-The source code for this project [is available on bitbucket.org](https://bitbucket.org/tlycken/bari-montecarlo/). Don't forget to [read the license](https://bitbucket.org/tlycken/bari-montecarlo/)
+The source code for this project [is available on github.com](https://github.com/tlycken/bari-montecarlo/). Don't forget to [read the license information](https://github.com/tlycken/bari-montecarlo/blob/master/LICENSE.md) ;)
