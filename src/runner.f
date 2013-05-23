@@ -12,7 +12,6 @@
 
         implicit none
 
-920   format('# ', a, F8.2, ' s')
         ! VARIABLE DECLARATIONS       
         integer(INT64) Nruns, i
         integer :: clock_start, clock_end, clock_rate
@@ -48,11 +47,12 @@
           ! initialize physics module
           call init_physics()
 
-          write(stdout, paramformat) padr("# Initial energy", 20), e0, "eV   "
-          write(stdout, paramformat) padr("# End time", 20), tfin*1e9, "ns   "
-          write(stdout, paramformat) padr("# Time step", 20), dt*1e9, "ns   "
-          write(stdout, paramformat) padr("# Gas pressure", 20) , p, "Torr "
-          write(stdout, paramformat) padr("# Gas density", 20) , n*1e-6, "cm^-3"
+          write(stdout, paramformat) padr("Initial energy", 30), e0, padr("eV", 5)
+          write(stdout, paramformat) padr("End time", 30), tfin*1e9, padr("ns", 5)
+          write(stdout, paramformat) padr("Time step", 30), dt*1e9, padr("ns", 5)
+          write(stdout, paramformat) padr("Gas pressure", 30) , p, padr("Torr", 5)
+          write(stdout, paramformat) padr("Gas density", 30) , n*1e-6, padr("cm^-3", 5)
+          write(stdout, '((A),(A))') padr("Electron density expression", 30), neexpr
 
           ! seed pseudo-random number generator
           call seed_rand_0()
@@ -83,7 +83,7 @@
 
           ! stop timer
           call system_clock(count=clock_end)
-          write(stdout,920) 'It took', (clock_end-clock_start)/real(clock_rate,REAL64)
+          write(stdout,paramformat) padr('It took', 30), (clock_end-clock_start)/real(clock_rate,REAL64), padr("s", 5)
 
         ! CLEAN UP
           !  deallocate(bins)g
