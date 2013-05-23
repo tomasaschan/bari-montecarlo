@@ -1,1 +1,0 @@
-runner.exe < input.in > output.out
