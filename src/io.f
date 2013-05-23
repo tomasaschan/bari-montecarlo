@@ -26,8 +26,12 @@
           integer Npops
           character(len=*) neexpr
 
-          read(stdin,*) NRunsreal, tfin, dt, e0, p, NDataFiles, Npops
+          read(stdin,*) NRunsreal, tfin, dt, e0, p
 
+          read(stdin,*) neexpr
+
+          read(stdin,*) NDataFiles, Npops
+          
           allocate(fnames(NDataFiles))
           allocate(nrd(NDataFiles))
           allocate(e0raw(NDataFiles))
@@ -39,9 +43,7 @@
           read(stdin,*) Araw, Qraw
 
           read(stdin,*) fnames
-          read(stdin,*) neexpr
 
-          write(stdout, *) "neexpr", neexpr
 
           Nruns = int(NRunsreal)
 

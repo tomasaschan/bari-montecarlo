@@ -41,6 +41,8 @@ The program reads a number of parameters from `stdin`. In the default setup, thi
 
   1. The initial energy of the primaries, in electronvolts (`1e3` for 1 keV, or `200` for 200 eV)
 
+  1. À mathematical expression describing the electron density as a function of time. The function supports syntax as described at the bottom of [this page](http://fparser.sourceforge.net/), with the only available variable being `t` for the time in seconds.
+
 1. Next, information about the collisional processes which should be considered.  
 **Note:** The first of these lines determines how the rest of the file is interpreted by the program, but **no verification is done at execution time**. If the input file is not consistent, the program might throw an error or return incorrect results - the behavior is undefined.
 

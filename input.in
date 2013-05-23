@@ -3,6 +3,7 @@
 .5e-9
 1e3
 50e-3
+1
 7 2
 1.53e7 2.74e7
 8.84e-10 3.67e-11
@@ -13,4 +14,3 @@
 "data/N2B3.dat"
 "data/N2Bprime3.dat" 
 "data/N2W3u.dat"
-1
