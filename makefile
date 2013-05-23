@@ -28,18 +28,8 @@ $(BINDIR)/%.mod:
 
 runner: $(OBJS)
 
-# Running the program
-
-run: runner | setid outdir
-	@cp $(INFILE) $(OUTDIR)
-	@echo -n "Running simulation..."
-	@mpirun -n 1 $(CMD)
-	@echo "done!"
-	@cp *.dat $(OUTDIR)
-	@cat $(OUTFILE) | grep -e \# | sed 's/\# //'
-
 $(BINDIR):
-	@mkdir -p $(BINDIR)
+	@mkdir $(BINDIR)
 
 clean:
 	@echo -n "Cleaning..."
