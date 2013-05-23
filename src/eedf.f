@@ -35,9 +35,6 @@
           integer ie, it
           
           do it=0,Ntimes
-            ! output number of electrons at e0
-            write(*,'((A),2(E15.4))') "e0(t)   ", it*dt, eedfbins(Needfbins,it)
-
             ! normalize entire eedf to 1
             eedfbins(:,it) = eedfbins(:,it)/sum(eedfbins(:,it))
 
