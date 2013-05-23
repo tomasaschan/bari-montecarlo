@@ -1,0 +1,1 @@
+runner.exe < input.in
