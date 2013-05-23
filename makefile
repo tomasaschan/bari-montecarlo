@@ -2,7 +2,7 @@
 FC 			:= 	gfortran
 BINDIR		:=	bin
 VPATH		:=	src
-FFLAGS		:=	-O3 -g -Wall -Warray-bounds -ffree-form -ffixed-line-length-none -fbounds-check -J$(BINDIR) #-I$(BINDIR)
+FFLAGS		:=	-O3 -g -static -static-libgcc -static-libgfortran -Wall -Warray-bounds -ffree-form -ffixed-line-length-none -fbounds-check -J$(BINDIR) #-I$(BINDIR)
 
 # Information about this run
 INFILE 		:= 	input.in
