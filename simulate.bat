@@ -9,8 +9,8 @@ echo.
 
 runner.exe < input.in
 
-move /Y *.dat out\%ldt%\
-copy /Y input.in out\%ldt%\
+move /Y *.dat out\%ldt%\ > NUL
+copy /Y input.in out\%ldt%\ > NUL
 
 echo.
 echo Output files are located in in out\%ldt%
