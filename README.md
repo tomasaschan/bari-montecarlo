@@ -3,25 +3,40 @@
 
 During March-May of 2013 I'm working on a research project in Bari, Italy, creating a Monte-Carlo simulation of electron beams in a collisional medium. This is the code.
 
-The code is developed in Fortran, licensed under a modified version of the MIT license - see `LICENSE.md`.
+The code is developed in Fortran, licensed under a modified version of the MIT license - see [`LICENSE.md`](https://github.com/tlycken/bari-montecarlo/blob/master/LICENSE.md).
 
 ## Contents of this guide
 
-1. Running the program
+* [Obtaining the source code](#obtaining-the-source-code)  
+  &nbsp;
 
-  1. Execution
-  1. Program input
-  1. Program output
+* [Building and running the program](#building-and-running-the-program)
+  &nbsp;
 
-1. Obtaining the source code
+* [Program input and output](#program-input-and-output)
+  * [Program input](#program-input)
+      * The structure of `input.in`
+      * The structure of the data files
+  * [Program output](#program-output)
 
-## Running the program
+## Obtaining the source code
 
-### Execution
+The source code for this project [is available on github.com](https://github.com/tlycken/bari-montecarlo/), but chances are you're already well aware of that, since that is also the best place to be reading this readme. Don't forget to [read the license information](https://github.com/tlycken/bari-montecarlo/blob/master/LICENSE.md) ;)
 
-The download provides two script files, `simulate.sh` for Linux-based systems and `simulate.bat` for Windows. Running the program is as easy as running the appropriate script.
+## Building and running the program
 
-However, some detail about the program input and output is in place:
+The Github repository has three branches: `master`, `linux-build` and `windows-build`. `master` has everything you absolutely need to build the program - the sources and the makefile - and all development of the project happens here. The `*-build` branches also include some additional tools that make building and/or using the program a little easier, and when something that changes the program behavior is commited to `master`, changes are merged into the `*-build` branches as well.
+
+* `linux-build` includes a bunch of scripts for `bash`, `awk` and `gnuplot` that help with running and post-processing the program. The preferred way of building and running the program in a Linux-based system is
+
+        $ make
+        $ ./simulate.sh
+
+  To plot the results, one might run `./scripts/plotall.sh` which creates a number of plots in the output directory of the last run.
+
+* `windows-build` does not include the scripts for linux, but instead has a couple of `.bat` scripts. The preferred way of building and running the simulation on Windows is to run `build.bat` followed by `simulate.bat` - this can be done by double-clicking them from Windows Explorer. (If you get a warning message about executing a potentially dangerous executable from an unknown source, just click "Run anyway".)
+
+## Program input and output
 
 ### Program input
 
@@ -58,12 +73,13 @@ The program reads a number of parameters from `stdin`. In the default setup, thi
 
 1. The file **must** end with (at least) one empty line
 
-Putting it together, this is an example of a valid input file which considers three collisional processes and calculates populations of the species here labelled N2B and N2C:
+Putting it together, this is an example of a valid input file which considers three collisional processes and calculates populations of the species here labelled N2B and N2C, using a unity electron density:
 
     1e6
     10e-9
     2e-9
     1e3
+    1.0
     3 2
     2.74e7 1.53e7
     3.67e-11 8.84e-10
@@ -88,11 +104,9 @@ Putting it together, this is an example of a valid input file which considers th
 
 ### Program output
 
-The program outputs some diagnostic data to `stdout`, which is by default redirected to a file called `simulation.out`. When opened in a text editor, this file contains some information about the run, such as the experimental parameters and the time it took to run the program.
-
 The data is output to three different files:
 
-* `eedf.dat` contains data for the electron energy distribution function. It has three columns, listing the time, energy and value of the eedf. The time is given in seconds, the energy in electronvolts, and the eedf normalized such that its integral is 1 for any given time.
+* `eedf.dat` contains data for the electron energy distribution function. It has three columns, listing the time, energy and value of the eedf. The time is given in seconds, the energy in eV, and the eedf in eV<sup>-1</sup>.
 
   The following `Matlab` code plots the eedf at the time 10 ns:
 
@@ -117,6 +131,3 @@ The data is output to three different files:
         data = load('pops.dat')
         plot(data(:,1), data(:,3))
 
-## Obtaining the source code
-
-The source code for this project [is available on github.com](https://github.com/tlycken/bari-montecarlo/). Don't forget to [read the license information](https://github.com/tlycken/bari-montecarlo/blob/master/LICENSE.md) ;)
