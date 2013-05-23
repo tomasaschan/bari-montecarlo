@@ -10,7 +10,7 @@
         real(REAL64), allocatable :: e0raw(:), e1raw(:), Araw(:), Qraw(:)
         integer, allocatable :: productsraw(:)
 
-        character(len=*), parameter, public :: paramformat = '((A),(Es14.3),(A8))'
+        character(len=*), parameter, public :: paramformat = '((A),(Es9.3),(A8))'
 
         integer, parameter :: in_f = 11, cs_f = 13, eedf_f = 17, rate_f = 19, pops_f = 23
 
