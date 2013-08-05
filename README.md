@@ -36,6 +36,10 @@ The Github repository has three branches: `master`, `linux-build` and `windows-b
 
 * `windows-build` does not include the scripts for linux, but instead has a couple of `.bat` scripts. The preferred way of building and running the simulation on Windows is to run `build.bat` followed by `simulate.bat` - this can be done by double-clicking them from Windows Explorer. (If you get a warning message about executing a potentially dangerous executable from an unknown source, just click "Run anyway".)
 
+### Prerequisites
+
+In order to build the program, you need to have both Make and gfortran installed on your computer. These are free tools, available both for linux and Windows.
+
 ## Program input and output
 
 ### Program input
